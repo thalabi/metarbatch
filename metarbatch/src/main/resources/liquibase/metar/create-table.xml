@@ -1,0 +1,67 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+	xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+	xmlns:pro="http://www.liquibase.org/xml/ns/pro"
+	xsi:schemaLocation="
+		http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd
+		http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
+		http://www.liquibase.org/xml/ns/pro	http://www.liquibase.org/xml/ns/pro/liquibase-pro-4.5.xsd">
+
+	<!-- Tables -->
+    <changeSet id="metar" author="thalabi">
+        <createTable tableName="metar">
+            <column name="raw_text" type="varchar(4000)"/>
+            <column name="station_id" type="varchar(5)">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="observation_time" type="datetime">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="latitude" type="decimal"/>
+            <column name="longitude" type="decimal"/>
+            <column name="temp_c" type="decimal"/>
+            <column name="dewpoint_c" type="decimal"/>
+            <column name="wind_dir_degrees" type="bigint"/>
+            <column name="wind_speed_kt" type="bigint"/>
+            <column name="wind_gust_kt" type="bigint"/>
+            <column name="visibility_statute_mi" type="decimal"/>
+            <column name="altim_in_hg" type="decimal"/>
+            <column name="sea_level_pressure_mb" type="decimal"/>
+            <column name="corrected" type="char(1)"/>
+            <column name="auto" type="char(1)"/>
+            <column name="auto_station" type="char(1)"/>
+            <column name="maintenance_indicator_on" type="char(1)"/>
+            <column name="no_signal" type="char(1)"/>
+            <column name="lightning_sensor_off" type="char(1)"/>
+            <column name="freezing_rain_sensor_off" type="char(1)"/>
+            <column name="present_weather_sensor_off" type="char(1)"/>
+            <column name="wx_string" type="varchar(16)"/>
+            <column name="sky_cover_1" type="varchar(5)"/>
+            <column name="cloud_base_ft_agl_1" type="bigint"/>
+            <column name="sky_cover_2" type="varchar(5)"/>
+            <column name="cloud_base_ft_agl_2" type="bigint"/>
+            <column name="sky_cover_3" type="varchar(5)"/>
+            <column name="cloud_base_ft_agl_3" type="bigint"/>
+            <column name="sky_cover_4" type="varchar(5)"/>
+            <column name="cloud_base_ft_agl_4" type="bigint"/>
+            <column name="flight_category" type="varchar(4)"/>
+            <column name="three_hr_pressure_tendency_mb" type="decimal"/>
+            <column name="maxt_c" type="decimal"/>
+            <column name="mint_c" type="decimal"/>
+            <column name="maxt24hr_c" type="decimal"/>
+            <column name="mint24hr_c" type="decimal"/>
+            <column name="precip_in" type="decimal"/>
+            <column name="pcp3hr_in" type="decimal"/>
+            <column name="pcp6hr_in" type="decimal"/>
+            <column name="pcp24hr_in" type="decimal"/>
+            <column name="snow_in" type="decimal"/>
+            <column name="vert_vis_ft" type="bigint"/>
+            <column name="metar_type" type="varchar(5)"/>
+            <column name="elevation_m" type="decimal"/>
+            
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

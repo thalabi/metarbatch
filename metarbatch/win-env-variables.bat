@@ -1,0 +1,11 @@
+set APP_FROM_EMAIL_ADDRESS=no-reply@kerneldc.com
+set APP_NOTIFICATION_EMAIL_ADDRESS=tarif.halabi@gmail.com
+set H2_DB_PASSWORD=
+set H2_DB_USERNAME=sa
+set H2_SPRING_BATCH_DB_PASSWORD=
+set H2_SPRING_BATCH_DB_USERNAME=sa
+set ORA_DB_PASSWORD=thalabi
+set ORA_DB_USERNAME=thalabi
+set SMTP_PASSWORD=uobhektcpjwxsvvf
+set SMTP_USERNAME=tarif.halabi@gmail.com
+set spring.profiles.active=dev
