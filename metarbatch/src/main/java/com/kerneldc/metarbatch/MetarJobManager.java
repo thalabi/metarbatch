@@ -70,9 +70,12 @@ public class MetarJobManager {
 	
 	public void cleanupAbortedJobs() throws NoSuchJobException {
 
+		LOGGER.info("Cleanup aborted jobs");
+		
 		LOGGER.info("Disabling Metar job execution");
 		metarJobExecutionEnabled = false;
 		
+
 		var metarJobExecutionSet = jobExplorer.findRunningJobExecutions(BatchConfig.METAR_JOB);
 		
 		for (JobExecution je: metarJobExecutionSet) {
@@ -98,6 +101,8 @@ public class MetarJobManager {
 	
 	public void restartFailedJobs() throws NoSuchJobException, ApplicationException {
 
+		LOGGER.info("Restarting failed jobs");
+		
 		LOGGER.info("Disabling Metar job execution");
 		metarJobExecutionEnabled = false;
 
