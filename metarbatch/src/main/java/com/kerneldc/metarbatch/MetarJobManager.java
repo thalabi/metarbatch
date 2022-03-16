@@ -68,60 +68,13 @@ public class MetarJobManager {
 		metarJobExecutionEnabled = false;
 	}
 	
-	public void cleanupAbortedJobs() throws NoSuchJobException {
-
-		LOGGER.info("Cleanup aborted jobs");
-		
-		LOGGER.info("Disabling Metar job execution");
-		metarJobExecutionEnabled = false;
-		
-
-		var metarJobExecutionSet = jobExplorer.findRunningJobExecutions(BatchConfig.METAR_JOB);
-		
-		for (JobExecution je: metarJobExecutionSet) {
-			LOGGER.info("Marking job execution id: [{}], instance id: [{}] as FAILED", je.getId(), je.getJobInstance().getId(), je.getStatus());
-			
-			je.setEndTime(JOB_END_TIME);
-			je.setExitStatus(ExitStatus.FAILED);
-			je.setStatus(BatchStatus.FAILED);
-			
-			for (StepExecution se : je.getStepExecutions()) {
-				if (Objects.equals(se.getStatus(), BatchStatus.STARTED)) {
-					se.setStatus(BatchStatus.FAILED);
-					se.setExitStatus(ExitStatus.FAILED);
-					jobRepository.update(se);
-				}
-			}
-			jobRepository.update(je);
-		}
-		
-		LOGGER.info("Enabling Metar job execution");
-		metarJobExecutionEnabled = true;
+	@Scheduled(cron = "${cleanup.schedule.cron.expression}")
+	public void cleanupAndRestartJobs() throws NoSuchJobException, ApplicationException {
+		cleanupAbortedJobs();
+		restartFailedJobs();
 	}
 	
-	public void restartFailedJobs() throws NoSuchJobException, ApplicationException {
-
-		LOGGER.info("Restarting failed jobs");
-		
-		LOGGER.info("Disabling Metar job execution");
-		metarJobExecutionEnabled = false;
-
-		var metarJobExecutionList = getJobExecutions(BatchConfig.METAR_JOB);
-		//LOGGER.info("metarJobExecution id list: [{}]", String.join(", ", metarJobExecutionList.stream().map(je -> je.getId().toString()).toList()));
-		var completedMetarJobInstanceIdList = getCompletedJobInstanceIdList(metarJobExecutionList);
-		//LOGGER.info("completedMetarJob instance id list: [{}]", String.join(", ", completedMetarJobInstanceIdList.stream().map(o -> o.toString()).toList()));
-		var metarJobExecutionListToBeRestarted = removedCompletedJobExecutionList(metarJobExecutionList, completedMetarJobInstanceIdList); 
-		//LOGGER.info("metarJobExecution id list to be restarted: [{}]", String.join(", ", metarJobExecutionListToBeRestarted.stream().map(je -> je.getId().toString()).toList()));
-		
-		for (JobExecution je : metarJobExecutionListToBeRestarted) {
-			restartMetarJob(je.getId());
-		}
-		
-		LOGGER.info("Enabling Metar job execution");
-		metarJobExecutionEnabled = true;
-	}
-
-	@Scheduled(cron = "${metar.schedule.cron.expression}") // every minute
+	@Scheduled(cron = "${metar.schedule.cron.expression}")
 	public void metarJobLauncher() throws JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException, JobParametersInvalidException {
 		
 		if (! /* not */ metarJobExecutionEnabled) {
@@ -166,6 +119,59 @@ public class MetarJobManager {
 		}
 		jobExecutionList.sort((a, b) -> a.getId().compareTo(b.getId()));
 		return jobExecutionList;
+	}
+
+	private void cleanupAbortedJobs() throws NoSuchJobException {
+
+		LOGGER.info("Cleanup aborted jobs");
+		
+		LOGGER.info("Disabling Metar job execution");
+		metarJobExecutionEnabled = false;
+		
+
+		var metarJobExecutionSet = jobExplorer.findRunningJobExecutions(BatchConfig.METAR_JOB);
+		
+		for (JobExecution je: metarJobExecutionSet) {
+			LOGGER.info("Marking job execution id: [{}], instance id: [{}] as FAILED", je.getId(), je.getJobInstance().getId(), je.getStatus());
+			
+			je.setEndTime(JOB_END_TIME);
+			je.setExitStatus(ExitStatus.FAILED);
+			je.setStatus(BatchStatus.FAILED);
+			
+			for (StepExecution se : je.getStepExecutions()) {
+				if (Objects.equals(se.getStatus(), BatchStatus.STARTED)) {
+					se.setStatus(BatchStatus.FAILED);
+					se.setExitStatus(ExitStatus.FAILED);
+					jobRepository.update(se);
+				}
+			}
+			jobRepository.update(je);
+		}
+		
+		LOGGER.info("Enabling Metar job execution");
+		metarJobExecutionEnabled = true;
+	}
+	
+	private void restartFailedJobs() throws NoSuchJobException, ApplicationException {
+
+		LOGGER.info("Restarting failed jobs");
+		
+		LOGGER.info("Disabling Metar job execution");
+		metarJobExecutionEnabled = false;
+
+		var metarJobExecutionList = getJobExecutions(BatchConfig.METAR_JOB);
+		//LOGGER.info("metarJobExecution id list: [{}]", String.join(", ", metarJobExecutionList.stream().map(je -> je.getId().toString()).toList()));
+		var completedMetarJobInstanceIdList = getCompletedJobInstanceIdList(metarJobExecutionList);
+		//LOGGER.info("completedMetarJob instance id list: [{}]", String.join(", ", completedMetarJobInstanceIdList.stream().map(o -> o.toString()).toList()));
+		var metarJobExecutionListToBeRestarted = removedCompletedJobExecutionList(metarJobExecutionList, completedMetarJobInstanceIdList); 
+		//LOGGER.info("metarJobExecution id list to be restarted: [{}]", String.join(", ", metarJobExecutionListToBeRestarted.stream().map(je -> je.getId().toString()).toList()));
+		
+		for (JobExecution je : metarJobExecutionListToBeRestarted) {
+			restartMetarJob(je.getId());
+		}
+		
+		LOGGER.info("Enabling Metar job execution");
+		metarJobExecutionEnabled = true;
 	}
 
 	private ArrayList<Long> getCompletedJobInstanceIdList(List<JobExecution> jobExecutionList) {
