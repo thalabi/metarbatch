@@ -13,6 +13,9 @@ public class RecordCountStepListener extends StepExecutionListenerSupport {
 
 	@Override
 	public ExitStatus afterStep(StepExecution stepExecution) {
+
+		purgeMetarListFromContext(stepExecution);
+		
         var exitCode = stepExecution.getExitStatus().getExitCode();
         if (StringUtils.equals(exitCode, ExitStatus.FAILED.getExitCode()) && stepExecution.getSkipCount() > 0) {
         	LOGGER.warn("Step completed with [{}] skiped items", stepExecution.getSkipCount());
@@ -23,4 +26,9 @@ public class RecordCountStepListener extends StepExecutionListenerSupport {
         }
     }
 
+	private void purgeMetarListFromContext(StepExecution stepExecution) {
+		var jobExecutionContext = stepExecution.getJobExecution()
+		.getExecutionContext();
+		jobExecutionContext.remove(TransformXmlTasklet.METAR_LIST);
+	}
 }
