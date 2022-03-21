@@ -29,12 +29,12 @@ import com.kerneldc.metarbatch.batch.AlreadyRunningNotificationTasklet;
 import com.kerneldc.metarbatch.batch.DeleteFileTasklet;
 import com.kerneldc.metarbatch.batch.DeleteMetarStageTasklet;
 import com.kerneldc.metarbatch.batch.DownloadTasklet;
+import com.kerneldc.metarbatch.batch.InsertMetarStageStepListener;
 import com.kerneldc.metarbatch.batch.LookupRunningJobsTasklet;
 import com.kerneldc.metarbatch.batch.MergeMetarTasklet;
 import com.kerneldc.metarbatch.batch.MetarJobFailureListener;
 import com.kerneldc.metarbatch.batch.MetarProcessor;
 import com.kerneldc.metarbatch.batch.MultipleRunningJobsDecider;
-import com.kerneldc.metarbatch.batch.RecordCountStepListener;
 import com.kerneldc.metarbatch.batch.TransformXmlTasklet;
 import com.kerneldc.metarbatch.domain.MetarStage;
 import com.kerneldc.metarbatch.repository.MetarStageRepository;
@@ -121,7 +121,7 @@ public class BatchConfig {
 				.reader(metarListItemReader)
 				.processor(metarProcessor())
 				.writer(metarStageWriter())
-				.listener(new RecordCountStepListener())
+				.listener(new InsertMetarStageStepListener())
 				.build();
 	}
 	// insertMetarStageStep end
