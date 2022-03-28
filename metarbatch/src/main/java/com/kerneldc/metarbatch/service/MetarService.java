@@ -12,6 +12,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.retry.annotation.Backoff;
@@ -32,10 +33,13 @@ public class MetarService {
 	private static final String DEFAULT_WORK_DIR = "MetarBatchWork";
 	private static final String LOCAL_DATE_TIME_FORMAT = "uuuuMMdd-HHmmss";
 	private static final DateTimeFormatter LOCAL_DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(LOCAL_DATE_TIME_FORMAT);
-	private static final int MINUTE = 60 * 1000;
-	//private static final int MINUTE = 1;
 	
-	@Retryable(value = IOException.class, maxAttempts = 3, backoff = @Backoff(delay = 3 * MINUTE))
+	@Value("${download.retry.max.attempts}")
+	private int downloadRetryMaxAttempts;
+	@Value("${download.retry.delay}")
+	private int downloadRetryDelay;
+	
+	@Retryable(value = IOException.class, maxAttemptsExpression = "${download.retry.max.attempts}", backoff = @Backoff(delayExpression = "${download.retry.delay}"))
 	public GZIPInputStream downloadMetarZipFile(String inputResourceString) throws IOException {
 		
 		var inputResource = getResourceFromString(inputResourceString);
@@ -45,10 +49,10 @@ public class MetarService {
 			metarZipInputStream = new GZIPInputStream(new BufferedInputStream(inputResource.getInputStream()));
 		} catch (IOException ioException) {
 			var retryCount = RetrySynchronizationManager.getContext().getRetryCount();
-			if (retryCount < 2) { // retryCount is zero based 
-				LOGGER.error("Failed to download file [{}], retrying in three minutes ({}/3 attempts) ... ", inputResource.toString(), retryCount+1);
+			if (retryCount < downloadRetryMaxAttempts-1) { // retryCount is zero based 
+				LOGGER.error("Failed to download file [{}], retrying in {} minutes ({}/{} attempts) ... ", inputResource.toString(), downloadRetryDelay / (60 * 1000f), retryCount+1, downloadRetryMaxAttempts);
 			} else {
-				LOGGER.error("Failed to download file [{}], exiting ({}/3 attempts) ... ", inputResource.toString(), retryCount+1);
+				LOGGER.error("Failed to download file [{}], exiting ({}/{} attempts) ... ", inputResource.toString(), retryCount+1, downloadRetryMaxAttempts);
 			}
 			throw ioException;
 		}
