@@ -14,6 +14,7 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor;
 import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.database.JpaItemWriter;
@@ -51,6 +52,7 @@ import lombok.RequiredArgsConstructor;
 public class BatchConfig {
 	
 	private final JobExplorer jobExplorer;
+	private final JobRepository jobRepository;
 	private final JobRegistry jobRegistry;
 	private final JobBuilderFactory jobBuilderFactory;
 	private final StepBuilderFactory stepBuilderFactory;
@@ -136,6 +138,9 @@ public class BatchConfig {
 		return stepBuilderFactory.get("DeleteFileTasklet").tasklet(new DeleteFileTasklet()).build();
 	}
 	
+	@Value("${metar.max.attempts.to.abandon:3}")
+	private int maxAttemptsToAbandon;
+
 	@Bean
 	public Job metarJob(Step insertMetarStageStep) {
 		return jobBuilderFactory.get(METAR_JOB)
@@ -149,7 +154,7 @@ public class BatchConfig {
 					.next(insertMetarStageStep)
 					.next(mergeMetarStep()).next(deleteFileStep())
 				.end()
-				.listener(new MetarJobFailureListener(emailService))
+				.listener(new MetarJobFailureListener(emailService, jobExplorer, jobRepository, maxAttemptsToAbandon))
 				.build();
 	}
 }
