@@ -6,7 +6,9 @@ import java.util.Map;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.listener.JobExecutionListenerSupport;
+import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.core.NestedExceptionUtils;
 
 import com.kerneldc.metarbatch.exception.ApplicationException;
@@ -20,12 +22,15 @@ import lombok.extern.slf4j.Slf4j;
 public class MetarJobFailureListener extends JobExecutionListenerSupport {
 
 	private final EmailService emailService;
+	private final JobExplorer jobExplorer;
+	private final JobRepository jobRepository;
+	private final int maxAttemptsToAbandon;
 	
 	@Override
 	public void afterJob(JobExecution jobExecution) {
 		
 		LOGGER.info("jobExecution.getStatus(): [{}]", jobExecution.getStatus());
-		
+
 		if (jobExecution.getStatus() == BatchStatus.COMPLETED) {
             LOGGER.info("Metar job executed successfully");
             return;
@@ -55,5 +60,23 @@ public class MetarJobFailureListener extends JobExecutionListenerSupport {
 			e.printStackTrace();
 		}
         
+		markJobAsAbandoned(jobExecution);
+	}
+
+
+	private void markJobAsAbandoned(JobExecution jobExecution) {
+		
+		var thisJobExecutions = jobExplorer.getJobExecutions(jobExecution.getJobInstance());
+		if (thisJobExecutions.size() >= maxAttemptsToAbandon) {
+			LOGGER.info("{} {}", thisJobExecutions.size(), maxAttemptsToAbandon);
+			LOGGER.info("Maximum attempts to run metar job, instance id: [{}], has been reached", jobExecution.getJobInstance());
+			for (JobExecution je : thisJobExecutions) {
+				LOGGER.info("Setting job execution id: [{}] to ABANDONED", je.getId());
+				je.setStatus(BatchStatus.ABANDONED);
+				jobRepository.update(je);
+			}
+			// TODO send email notification
+		}
+		
 	}
 }
