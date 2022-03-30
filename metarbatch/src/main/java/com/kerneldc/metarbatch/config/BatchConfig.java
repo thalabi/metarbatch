@@ -119,8 +119,7 @@ public class BatchConfig {
 	public Step insertMetarStageStep(ItemReader<METAR> metarListItemReader) {
 		return 
 				stepBuilderFactory.get("InsertMetarStage")
-				//.<METAR, MetarStage>chunk(1000)
-				.<METAR, MetarStage>chunk(100)
+				.<METAR, MetarStage>chunk(1000)
 				.reader(metarListItemReader)
 				.processor(metarProcessor())
 				.writer(metarStageWriter())
