@@ -1,7 +1,6 @@
 package com.kerneldc.metarbatch.batch;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
@@ -10,6 +9,7 @@ import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.repeat.RepeatStatus;
 
 import com.kerneldc.metarbatch.service.MetarService;
+import com.kerneldc.metarbatch.util.TimeUtils;
 
 import liquibase.util.Validate;
 import lombok.RequiredArgsConstructor;
@@ -50,7 +50,7 @@ public class DownloadTasklet implements Tasklet {
 				.getJobParameters()
 				.getDate("jobTimestamp");
 		Validate.notNull(jobTimestampDate, "jobTimestamp job parameter not set");
-		jobTimestamp = LocalDateTime.ofInstant(jobTimestampDate.toInstant(), ZoneId.systemDefault());
+		jobTimestamp = TimeUtils.toLocalDateTime(jobTimestampDate);
 
 		noaaServerResouce = chunkContext.getStepContext()
 				.getStepExecution()

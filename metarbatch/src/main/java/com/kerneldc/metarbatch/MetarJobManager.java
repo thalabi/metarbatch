@@ -1,9 +1,7 @@
 package com.kerneldc.metarbatch;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Objects;
 
 import javax.annotation.PostConstruct;
@@ -13,7 +11,6 @@ import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobInstance;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.JobParametersInvalidException;
 import org.springframework.batch.core.StepExecution;
@@ -26,7 +23,9 @@ import org.springframework.batch.core.repository.JobExecutionAlreadyRunningExcep
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.repository.JobRestartException;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -47,6 +46,20 @@ public class MetarJobManager {
 
 	private static final Date JOB_END_TIME = TimeUtils.toDate(LocalDateTime.of(9999, 12, 31, 23, 59, 59));
 
+	private static final String RESTART_JOBS = """
+		with
+		job_instance as (
+			select bji.job_instance_id id from batch_job_instance bji where bji.job_name = ?),
+		failed_execution as (
+			select job_execution_id, job_instance_id from batch_job_execution bje join job_instance on bje.job_instance_id = job_instance.id where bje.status != 'COMPLETED' and bje.status != 'ABANDONED'),
+		completed_execution as (
+			select job_execution_id, job_instance_id from batch_job_execution bje join job_instance on bje.job_instance_id = job_instance.id where bje.status = 'COMPLETED'),
+		execution_to_restart as (
+			select max(job_execution_id) last_job_execution_id, job_instance_id from failed_execution fe where fe.job_instance_id not in (select ce.job_instance_id from completed_execution ce)
+				group by job_instance_id
+				order by last_job_execution_id)
+		select last_job_execution_id from execution_to_restart
+	""";
 	public static final String JOB_TIMESTAMP ="jobTimestamp";
 	@Value("${noaa.server.resource:url:https://aviationweather.gov/adds/dataserver_current/current/metars.cache.xml.gz}")
 	private String noaaServerResouce;
@@ -61,6 +74,9 @@ public class MetarJobManager {
 	private final Job metarJob;
 	private final EmailService emailService;
 	
+	@Qualifier("batchJdbcTemplate")
+	private final JdbcTemplate batchJdbcTemplate;
+	
 	private boolean metarJobExecutionEnabled;
 
 	@PostConstruct
@@ -68,11 +84,53 @@ public class MetarJobManager {
 		metarJobExecutionEnabled = false;
 	}
 	
-	public void cleanupAbortedJobs() throws NoSuchJobException {
+	@Scheduled(cron = "${cleanup.schedule.cron.expression}")
+	public void cleanupAndRestartJobs() throws NoSuchJobException, ApplicationException {
+		cleanupAbortedJobs();
+		restartFailedJobs();
+	}
+	
+	@Scheduled(cron = "${metar.schedule.cron.expression}")
+	public void metarJobLauncher() throws JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException, JobParametersInvalidException {
+		
+		if (! /* not */ metarJobExecutionEnabled) {
+			LOGGER.info("MetarJobScheduling is disabled");
+			return;
+		}
+		
+		var jpbParameters = new JobParametersBuilder(jobExplorer)
+				.addDate(JOB_TIMESTAMP, new Date())
+				.addString("noaaServerResouce", noaaServerResouce)
+				.addString("workDirectory", workDirectory)
+				.addString("metarFile", metarFile)
+				.getNextJobParameters(metarJob)
+				.toJobParameters();
+		LOGGER.info("Launching MetarJob ...");
+		var metarJobExecution = jobLauncher.run(metarJob, jpbParameters);
+		LOGGER.info("MetarJob was launched. Instance id [{}] and status [{}]", metarJobExecution.getJobId(), metarJobExecution.getStatus());
+	}
+	
+	public void restartMetarJob(Long jobExecutionId) throws ApplicationException {
+		try {
+			LOGGER.info("Restarting failed Metar job (execution id [{}])", jobExecutionId);
+			var metarJobExecutionId = jobOperator.restart(jobExecutionId);
+			LOGGER.info("Metar job completed (new execution id [{}])", metarJobExecutionId);
+		} catch (JobInstanceAlreadyCompleteException | NoSuchJobExecutionException | NoSuchJobException
+				| JobRestartException | JobParametersInvalidException e) {
+			var stacktrace = ExceptionUtils.getStackTrace(e);
+			LOGGER.error(stacktrace);
+			emailService.sendMetarJobRestartFailure(jobExecutionId, stacktrace);
+		}
+	}
 
+	private void cleanupAbortedJobs() throws NoSuchJobException {
+
+		LOGGER.info("Cleanup aborted jobs");
+		
 		LOGGER.info("Disabling Metar job execution");
 		metarJobExecutionEnabled = false;
 		
+
 		var metarJobExecutionSet = jobExplorer.findRunningJobExecutions(BatchConfig.METAR_JOB);
 		
 		for (JobExecution je: metarJobExecutionSet) {
@@ -96,95 +154,20 @@ public class MetarJobManager {
 		metarJobExecutionEnabled = true;
 	}
 	
-	public void restartFailedJobs() throws NoSuchJobException, ApplicationException {
+	private void restartFailedJobs() throws NoSuchJobException, ApplicationException {
 
+		LOGGER.info("Restarting failed jobs");
+		
 		LOGGER.info("Disabling Metar job execution");
 		metarJobExecutionEnabled = false;
 
-		var metarJobExecutionList = getJobExecutions(BatchConfig.METAR_JOB);
-		//LOGGER.info("metarJobExecution id list: [{}]", String.join(", ", metarJobExecutionList.stream().map(je -> je.getId().toString()).toList()));
-		var completedMetarJobInstanceIdList = getCompletedJobInstanceIdList(metarJobExecutionList);
-		//LOGGER.info("completedMetarJob instance id list: [{}]", String.join(", ", completedMetarJobInstanceIdList.stream().map(o -> o.toString()).toList()));
-		var metarJobExecutionListToBeRestarted = removedCompletedJobExecutionList(metarJobExecutionList, completedMetarJobInstanceIdList); 
-		//LOGGER.info("metarJobExecution id list to be restarted: [{}]", String.join(", ", metarJobExecutionListToBeRestarted.stream().map(je -> je.getId().toString()).toList()));
-		
-		for (JobExecution je : metarJobExecutionListToBeRestarted) {
-			restartMetarJob(je.getId());
+		var jobExecutionIdListToBeRestarted = batchJdbcTemplate.queryForList(RESTART_JOBS, Long.class, BatchConfig.METAR_JOB);
+		for (Long jobExecutionId : jobExecutionIdListToBeRestarted) {
+			restartMetarJob(jobExecutionId);
 		}
 		
 		LOGGER.info("Enabling Metar job execution");
 		metarJobExecutionEnabled = true;
 	}
-
-	@Scheduled(cron = "${metar.schedule.cron.expression}") // every minute
-	public void metarJobLauncher() throws JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException, JobParametersInvalidException {
-		
-		if (! /* not */ metarJobExecutionEnabled) {
-			LOGGER.info("MetarJobScheduling is disabled");
-			return;
-		}
-		
-		var jpbParameters = new JobParametersBuilder(jobExplorer)
-				.addDate(JOB_TIMESTAMP, new Date())
-				.addString("noaaServerResouce", noaaServerResouce)
-				.addString("workDirectory", workDirectory)
-				.addString("metarFile", metarFile)
-				.getNextJobParameters(metarJob)
-				.toJobParameters();
-		var metarJobExecution = jobLauncher.run(metarJob, jpbParameters);
-		LOGGER.info("MetarJob launched with job instance id: [{}]", metarJobExecution.getJobId());
-	}
-	
-	public void restartMetarJob(Long jobExecutionId) throws ApplicationException {
-		try {
-			LOGGER.info("Restarting failed Metar job (execution id [{}])", jobExecutionId);
-			var metarJobExecutionId = jobOperator.restart(jobExecutionId);
-			LOGGER.info("Metar job completed (new execution id [{}])", metarJobExecutionId);
-		} catch (JobInstanceAlreadyCompleteException | NoSuchJobExecutionException | NoSuchJobException
-				| JobRestartException | JobParametersInvalidException e) {
-			var stacktrace = ExceptionUtils.getStackTrace(e);
-			LOGGER.error(stacktrace);
-			emailService.sendMetarJobRestartFailure(jobExecutionId, stacktrace);
-		}
-	}
-
-	private List<JobExecution> getJobExecutions(String jobName) throws NoSuchJobException {
-		var metarJobInstanceCount = jobExplorer.getJobInstanceCount(jobName);
-		LOGGER.info("metarJobInstanceCount: [{}]", metarJobInstanceCount);
-		var metarJobInstanceList = jobExplorer.findJobInstancesByJobName(jobName, 0, metarJobInstanceCount);
-		var jobExecutionList = new ArrayList<JobExecution>();
-		for (JobInstance ji : metarJobInstanceList) {
-			var metarJobExecutionList = jobExplorer.getJobExecutions(ji);
-			for (JobExecution je : metarJobExecutionList) {
-				jobExecutionList.add(je);
-			}
-		}
-		jobExecutionList.sort((a, b) -> a.getId().compareTo(b.getId()));
-		return jobExecutionList;
-	}
-
-	private ArrayList<Long> getCompletedJobInstanceIdList(List<JobExecution> jobExecutionList) {
-		var completedJobInstanceIdList = new ArrayList<Long>();
-		for (JobExecution je : jobExecutionList) {
-			if (Objects.equals(je.getStatus(), BatchStatus.COMPLETED) && Objects.equals(je.getExitStatus(), ExitStatus.COMPLETED)) {
-				completedJobInstanceIdList.add(je.getJobInstance().getInstanceId());
-			}
-		}
-		return completedJobInstanceIdList;
-	}
-
-	private List<JobExecution> removedCompletedJobExecutionList(List<JobExecution> jobExecutionList,
-			ArrayList<Long> completedJobInstanceIdList) {
-		var removedCompletedJobExecutionList = new ArrayList<JobExecution>();
-		for (JobExecution je : jobExecutionList) {
-			//LOGGER.info("completedMetarJobIdList: [{}], je.getId(): [{}], je: [{}]", completedJobInstanceIdList, je.getJobInstance().getInstanceId(), je );
-			if (! /* not */ completedJobInstanceIdList.contains(je.getJobInstance().getInstanceId())) {
-				removedCompletedJobExecutionList.add(je);
-				//LOGGER.info("added [{}]", je);
-			}
-		}
-		return removedCompletedJobExecutionList;
-	}
-
 
 }

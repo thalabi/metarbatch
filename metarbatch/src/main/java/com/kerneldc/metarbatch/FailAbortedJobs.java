@@ -18,8 +18,7 @@ public class FailAbortedJobs implements ApplicationRunner {
 	@Override
 	public void run(ApplicationArguments args) throws Exception {
 		
-		metarJobManager.cleanupAbortedJobs();
-		metarJobManager.restartFailedJobs();
+		metarJobManager.cleanupAndRestartJobs();
 	}
 
 }

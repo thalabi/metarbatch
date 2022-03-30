@@ -14,6 +14,7 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor;
 import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.database.JpaItemWriter;
@@ -29,12 +30,12 @@ import com.kerneldc.metarbatch.batch.AlreadyRunningNotificationTasklet;
 import com.kerneldc.metarbatch.batch.DeleteFileTasklet;
 import com.kerneldc.metarbatch.batch.DeleteMetarStageTasklet;
 import com.kerneldc.metarbatch.batch.DownloadTasklet;
+import com.kerneldc.metarbatch.batch.InsertMetarStageStepListener;
 import com.kerneldc.metarbatch.batch.LookupRunningJobsTasklet;
 import com.kerneldc.metarbatch.batch.MergeMetarTasklet;
 import com.kerneldc.metarbatch.batch.MetarJobFailureListener;
 import com.kerneldc.metarbatch.batch.MetarProcessor;
 import com.kerneldc.metarbatch.batch.MultipleRunningJobsDecider;
-import com.kerneldc.metarbatch.batch.RecordCountStepListener;
 import com.kerneldc.metarbatch.batch.TransformXmlTasklet;
 import com.kerneldc.metarbatch.domain.MetarStage;
 import com.kerneldc.metarbatch.repository.MetarStageRepository;
@@ -51,6 +52,7 @@ import lombok.RequiredArgsConstructor;
 public class BatchConfig {
 	
 	private final JobExplorer jobExplorer;
+	private final JobRepository jobRepository;
 	private final JobRegistry jobRegistry;
 	private final JobBuilderFactory jobBuilderFactory;
 	private final StepBuilderFactory stepBuilderFactory;
@@ -121,7 +123,7 @@ public class BatchConfig {
 				.reader(metarListItemReader)
 				.processor(metarProcessor())
 				.writer(metarStageWriter())
-				.listener(new RecordCountStepListener())
+				.listener(new InsertMetarStageStepListener())
 				.build();
 	}
 	// insertMetarStageStep end
@@ -136,6 +138,9 @@ public class BatchConfig {
 		return stepBuilderFactory.get("DeleteFileTasklet").tasklet(new DeleteFileTasklet()).build();
 	}
 	
+	@Value("${metar.max.attempts.to.abandon:3}")
+	private int maxAttemptsToAbandon;
+
 	@Bean
 	public Job metarJob(Step insertMetarStageStep) {
 		return jobBuilderFactory.get(METAR_JOB)
@@ -149,7 +154,7 @@ public class BatchConfig {
 					.next(insertMetarStageStep)
 					.next(mergeMetarStep()).next(deleteFileStep())
 				.end()
-				.listener(new MetarJobFailureListener(emailService))
+				.listener(new MetarJobFailureListener(emailService, jobExplorer, jobRepository, maxAttemptsToAbandon))
 				.build();
 	}
 }

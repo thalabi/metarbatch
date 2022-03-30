@@ -9,7 +9,6 @@ import javax.xml.bind.Unmarshaller;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
-import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.repeat.RepeatStatus;
 
 import com.kerneldc.metarbatch.xml.schema.metar.METAR;
@@ -19,6 +18,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class TransformXmlTasklet implements Tasklet {
+	
+	public static final String METAR_LIST = "metarList";
 
 	private Path metarFilePath;
 	
@@ -41,14 +42,14 @@ public class TransformXmlTasklet implements Tasklet {
 	}
 
 	private void saveMetarList(ChunkContext chunkContext, List<METAR> metarList) {
-		ExecutionContext jobExecutionContext = chunkContext.getStepContext()
+		var jobExecutionContext = chunkContext.getStepContext()
 				.getStepExecution().getJobExecution()
 				.getExecutionContext();
-		jobExecutionContext.put("metarList", metarList);		
+		jobExecutionContext.put(METAR_LIST, metarList);		
 	}
 
 	private void getMetarFilePath(ChunkContext chunkContext) {
-		ExecutionContext jobExecutionContext = chunkContext.getStepContext()
+		var jobExecutionContext = chunkContext.getStepContext()
 				.getStepExecution().getJobExecution()
 				.getExecutionContext();
 		
