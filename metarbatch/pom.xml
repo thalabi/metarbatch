@@ -9,7 +9,7 @@
 	</parent>
 	<groupId>com.kerneldc</groupId>
 	<artifactId>metarbatch</artifactId>
-	<version>1.0-RELEASE</version>
+	<version>1.0.1-SNAPSHOT</version>
 	<name>metarbatch</name>
 	<description>Demo project for Spring Boot</description>
 	<properties>
