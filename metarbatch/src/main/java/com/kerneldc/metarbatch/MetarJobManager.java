@@ -128,12 +128,22 @@ public class MetarJobManager {
 			LOGGER.info("Restarting failed Metar job (execution id [{}])", jobExecutionId);
 			var metarJobExecutionId = jobOperator.restart(jobExecutionId);
 			LOGGER.info("Metar job completed (new execution id [{}])", metarJobExecutionId);
-		} catch (JobInstanceAlreadyCompleteException | NoSuchJobExecutionException | NoSuchJobException
+		} catch (JobInstanceAlreadyCompleteException e) {
+			LOGGER.warn("Unable to restart job execution id: {} due to JobInstanceAlreadyCompleteException exception. Marking it as ABANDONED.", jobExecutionId);
+			markJobAsAbandoned(jobExecutionId);
+			emailService.sendMetarJobSetToAbandoned(jobExecutionId);
+		} catch (/*JobInstanceAlreadyCompleteException | */ NoSuchJobExecutionException | NoSuchJobException
 				| JobRestartException | JobParametersInvalidException e) {
 			var stacktrace = ExceptionUtils.getStackTrace(e);
 			LOGGER.error(stacktrace);
 			emailService.sendMetarJobRestartFailure(jobExecutionId, stacktrace);
 		}
+	}
+
+	private void markJobAsAbandoned(Long jobExecutionId) {
+		var jobExecution = jobExplorer.getJobExecution(jobExecutionId);
+		jobExecution.setStatus(BatchStatus.ABANDONED);
+		jobRepository.update(jobExecution);
 	}
 
 	private void cleanupAbortedJobs() throws NoSuchJobException {
