@@ -19,8 +19,11 @@ import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 import com.kerneldc.metarbatch.MetarJobManager;
 import com.kerneldc.metarbatch.exception.ApplicationException;
 
+import freemarker.core.ParseException;
 import freemarker.template.Configuration;
+import freemarker.template.MalformedTemplateNameException;
 import freemarker.template.TemplateException;
+import freemarker.template.TemplateNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -37,9 +40,12 @@ public class EmailService {
 	private static final String METAR_JOB_FAILURE_NOTIFICATION_SUBJECT = "Metar Job Failure";
 	private static final String METAR_JOB_ALREADY_RUNNING_NOTIFICATION_SUBJECT = "Metar Job Already Running";
 	private static final String METAR_JOB_RESTART_FAILURE_NOTIFICATION_SUBJECT = "Metar Job Restart Failure";
+	private static final String METAR_JOB_SET_TO_ABANDONED_NOTIFICATION_SUBJECT = "Metar Job set to 'ABANDONED'";
 	private static final String METAR_JOB_FAILURE_TEMPLATE = "metarJobFailure.ftlh";
 	private static final String METAR_JOB_ALREADY_RUNNING_TEMPLATE = "metarJobAlreadyRunning.ftlh";
 	private static final String METAR_JOB_RESTART_FAILURE_TEMPLATE = "metarJobRestartFailure.ftlh";
+	private static final String METAR_JOB_SET_TO_ABANDONED_TEMPLATE = "metarJobSetToAbandoned.ftlh";
+	
 	private final JavaMailSender javaMailSender;
 	private final Configuration freeMarkerConfiguration;
 	
@@ -58,7 +64,7 @@ public class EmailService {
 			throw new ApplicationException(message + " (" + e.getMessage() + ")");
 			
 		}
-		LOGGER.info("Metar job failure notification email to: {}", metarJobNotificationTo);
+		LOGGER.info("Metar job failure notification email sent to: {}", metarJobNotificationTo);
 	}
 	
 	public void sendMetarJobAlreadyRunning(Properties currentJobParametersMap, Properties runningJobParametersMap) throws ApplicationException {
@@ -76,7 +82,7 @@ public class EmailService {
 			throw new ApplicationException(message + " (" + e.getMessage() + ")");
 			
 		}
-		LOGGER.info("Metar job already running notification email to: {}", metarJobNotificationTo);
+		LOGGER.info("Metar job already running notification email sent to: {}", metarJobNotificationTo);
 	}
 
 	public void sendMetarJobRestartFailure(Long jobExecutionId, String stacktrace) throws ApplicationException {
@@ -94,9 +100,26 @@ public class EmailService {
 			throw new ApplicationException(message + " (" + e.getMessage() + ")");
 			
 		}
-		LOGGER.info("Metar job failure notification email to: {}", metarJobNotificationTo);
+		LOGGER.info("Metar job restart failure notification email sent to: {}", metarJobNotificationTo);
 	}
 
+	public void sendMetarJobSetToAbandoned(Long jobExecutionId) throws ApplicationException {
+		var mimeMessage = javaMailSender.createMimeMessage();
+		var mimeMessageHelper = new MimeMessageHelper(mimeMessage, StandardCharsets.UTF_8.name());
+		try {
+			mimeMessageHelper.setFrom(emailNotificationFrom);
+			mimeMessageHelper.setTo(InternetAddress.parse(metarJobNotificationTo));
+			mimeMessageHelper.setSubject(METAR_JOB_SET_TO_ABANDONED_NOTIFICATION_SUBJECT);
+			mimeMessageHelper.setText(processMetarJobSetToAbandonedTemplate(jobExecutionId), true);
+			javaMailSender.send(mimeMessage);
+		} catch (MessagingException | IOException | TemplateException e) {
+			var message = "Exception while sending Metar Job Restart Failure email."; 
+			LOGGER.error(message, e);
+			throw new ApplicationException(message + " (" + e.getMessage() + ")");
+			
+		}
+		LOGGER.info("Metar job 'set to ABANDONED' notification email sent to: {}", metarJobNotificationTo);
+	}
 	private String processMetarJobFailureTemplate(Properties jobParametersMap, List<String> stacktraceList) throws IOException, TemplateException {
 		Map<String, Object> templateModelMap = new HashMap<>();
 		templateModelMap.put("jobParametersMap", jobParametersMap);
@@ -117,4 +140,11 @@ public class EmailService {
 		templateModelMap.put("stacktrace", stacktrace);
 		return FreeMarkerTemplateUtils.processTemplateIntoString(freeMarkerConfiguration.getTemplate(METAR_JOB_RESTART_FAILURE_TEMPLATE), templateModelMap);
 	}
+	
+	private String processMetarJobSetToAbandonedTemplate(Long jobExecutionId) throws TemplateNotFoundException, MalformedTemplateNameException, ParseException, IOException, TemplateException {
+		Map<String, Object> templateModelMap = new HashMap<>();
+		templateModelMap.put("jobExecutionId", jobExecutionId);
+		return FreeMarkerTemplateUtils.processTemplateIntoString(freeMarkerConfiguration.getTemplate(METAR_JOB_SET_TO_ABANDONED_TEMPLATE), templateModelMap);
+	}
+	
 }
