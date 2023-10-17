@@ -42,6 +42,8 @@ public class MetarService {
 	@Retryable(value = IOException.class, maxAttemptsExpression = "${download.retry.max.attempts}", backoff = @Backoff(delayExpression = "${download.retry.delay}"))
 	public GZIPInputStream downloadMetarZipFile(String inputResourceString) throws IOException {
 		
+		LOGGER.info("inputResourceString: {}", inputResourceString);
+		
 		var inputResource = getResourceFromString(inputResourceString);
 		
 		GZIPInputStream metarZipInputStream = null;
