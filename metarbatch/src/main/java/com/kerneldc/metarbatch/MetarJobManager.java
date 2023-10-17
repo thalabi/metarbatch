@@ -74,7 +74,6 @@ public class MetarJobManager {
 		select max_job_execution_id from latest_job_execution
 		""";
 	public static final String JOB_TIMESTAMP ="jobTimestamp";
-	//@Value("${noaa.server.resource:url:https://aviationweather.gov/adds/dataserver_current/current/metars.cache.xml.gz}")
 	@Value("${noaa.server.resource}")
 	private String noaaServerResouce;
 	@Value("${work.directory}")
