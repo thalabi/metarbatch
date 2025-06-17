@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Objects;
 
-import javax.annotation.PostConstruct;
-
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ExitStatus;
@@ -33,8 +31,8 @@ import org.springframework.stereotype.Service;
 import com.kerneldc.metarbatch.config.BatchConfig;
 import com.kerneldc.metarbatch.exception.ApplicationException;
 import com.kerneldc.metarbatch.service.EmailService;
-import com.kerneldc.metarbatch.util.TimeUtils;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -44,7 +42,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class MetarJobManager {
 
-	private static final Date JOB_END_TIME = TimeUtils.toDate(LocalDateTime.of(9999, 12, 31, 23, 59, 59));
+//	private static final Date JOB_END_TIME = TimeUtils.toDate(LocalDateTime.of(9999, 12, 31, 23, 59, 59));
+	private static final LocalDateTime JOB_END_TIME = LocalDateTime.of(9999, 12, 31, 23, 59, 59);
 
 //	private static final String RESTART_JOBS_SQL = """
 //		with

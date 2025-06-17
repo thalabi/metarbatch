@@ -3,7 +3,7 @@ package com.kerneldc.metarbatch.repository;
 import java.io.Serializable;
 import java.util.List;
 
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 
 import org.springframework.data.repository.NoRepositoryBean;
 

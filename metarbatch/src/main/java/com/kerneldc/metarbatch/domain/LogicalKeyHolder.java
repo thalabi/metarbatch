@@ -4,8 +4,8 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 
 import org.apache.commons.lang3.StringUtils;
 

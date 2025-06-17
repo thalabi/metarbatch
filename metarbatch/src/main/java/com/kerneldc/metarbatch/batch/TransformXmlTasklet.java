@@ -3,9 +3,6 @@ package com.kerneldc.metarbatch.batch;
 import java.nio.file.Path;
 import java.util.List;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Unmarshaller;
-
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
@@ -14,6 +11,8 @@ import org.springframework.batch.repeat.RepeatStatus;
 import com.kerneldc.metarbatch.xml.schema.metar.METAR;
 import com.kerneldc.metarbatch.xml.schema.metar.Response;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.Unmarshaller;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
