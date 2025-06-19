@@ -1,0 +1,156 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+	xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+	xmlns:pro="http://www.liquibase.org/xml/ns/pro"
+	xsi:schemaLocation="
+		http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd
+		http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
+		http://www.liquibase.org/xml/ns/pro	http://www.liquibase.org/xml/ns/pro/liquibase-pro-4.5.xsd">
+
+	<!-- Tables -->
+    <changeSet id="metar-partitions" author="thalabi">
+
+	    <!-- 2016 -->
+		<sql>create table metar_y2016_m01 partition of metar for values from ('2016-01-01') to ('2016-02-01')</sql>
+		<sql>create table metar_y2016_m02 partition of metar for values from ('2016-02-01') to ('2016-03-01')</sql>
+		<sql>create table metar_y2016_m03 partition of metar for values from ('2016-03-01') to ('2016-04-01')</sql>
+		<sql>create table metar_y2016_m04 partition of metar for values from ('2016-04-01') to ('2016-05-01')</sql>
+		<sql>create table metar_y2016_m05 partition of metar for values from ('2016-05-01') to ('2016-06-01')</sql>
+		<sql>create table metar_y2016_m06 partition of metar for values from ('2016-06-01') to ('2016-07-01')</sql>
+		<sql>create table metar_y2016_m07 partition of metar for values from ('2016-07-01') to ('2016-08-01')</sql>
+		<sql>create table metar_y2016_m08 partition of metar for values from ('2016-08-01') to ('2016-09-01')</sql>
+		<sql>create table metar_y2016_m09 partition of metar for values from ('2016-09-01') to ('2016-10-01')</sql>
+		<sql>create table metar_y2016_m10 partition of metar for values from ('2016-10-01') to ('2016-11-01')</sql>
+		<sql>create table metar_y2016_m11 partition of metar for values from ('2016-11-01') to ('2016-12-01')</sql>
+		<sql>create table metar_y2016_m12 partition of metar for values from ('2016-12-01') to ('2017-01-01')</sql>
+		
+	    <!-- 2017 -->
+	    <sql>create table metar_y2017_m01 partition of metar for values from ('2017-01-01') to ('2017-02-01')</sql>
+	    <sql>create table metar_y2017_m02 partition of metar for values from ('2017-02-01') to ('2017-03-01')</sql>
+	    <sql>create table metar_y2017_m03 partition of metar for values from ('2017-03-01') to ('2017-04-01')</sql>
+	    <sql>create table metar_y2017_m04 partition of metar for values from ('2017-04-01') to ('2017-05-01')</sql>
+	    <sql>create table metar_y2017_m05 partition of metar for values from ('2017-05-01') to ('2017-06-01')</sql>
+	    <sql>create table metar_y2017_m06 partition of metar for values from ('2017-06-01') to ('2017-07-01')</sql>
+	    <sql>create table metar_y2017_m07 partition of metar for values from ('2017-07-01') to ('2017-08-01')</sql>
+	    <sql>create table metar_y2017_m08 partition of metar for values from ('2017-08-01') to ('2017-09-01')</sql>
+	    <sql>create table metar_y2017_m09 partition of metar for values from ('2017-09-01') to ('2017-10-01')</sql>
+	    <sql>create table metar_y2017_m10 partition of metar for values from ('2017-10-01') to ('2017-11-01')</sql>
+	    <sql>create table metar_y2017_m11 partition of metar for values from ('2017-11-01') to ('2017-12-01')</sql>
+	    <sql>create table metar_y2017_m12 partition of metar for values from ('2017-12-01') to ('2018-01-01')</sql>
+	
+	    <!-- 2018 -->
+	    <sql>create table metar_y2018_m01 partition of metar for values from ('2018-01-01') to ('2018-02-01')</sql>
+	    <sql>create table metar_y2018_m02 partition of metar for values from ('2018-02-01') to ('2018-03-01')</sql>
+	    <sql>create table metar_y2018_m03 partition of metar for values from ('2018-03-01') to ('2018-04-01')</sql>
+	    <sql>create table metar_y2018_m04 partition of metar for values from ('2018-04-01') to ('2018-05-01')</sql>
+	    <sql>create table metar_y2018_m05 partition of metar for values from ('2018-05-01') to ('2018-06-01')</sql>
+	    <sql>create table metar_y2018_m06 partition of metar for values from ('2018-06-01') to ('2018-07-01')</sql>
+	    <sql>create table metar_y2018_m07 partition of metar for values from ('2018-07-01') to ('2018-08-01')</sql>
+	    <sql>create table metar_y2018_m08 partition of metar for values from ('2018-08-01') to ('2018-09-01')</sql>
+	    <sql>create table metar_y2018_m09 partition of metar for values from ('2018-09-01') to ('2018-10-01')</sql>
+	    <sql>create table metar_y2018_m10 partition of metar for values from ('2018-10-01') to ('2018-11-01')</sql>
+	    <sql>create table metar_y2018_m11 partition of metar for values from ('2018-11-01') to ('2018-12-01')</sql>
+	    <sql>create table metar_y2018_m12 partition of metar for values from ('2018-12-01') to ('2019-01-01')</sql>
+
+	    <!-- 2019 -->
+	    <sql>create table metar_y2019_m01 partition of metar for values from ('2019-01-01') to ('2019-02-01')</sql>
+	    <sql>create table metar_y2019_m02 partition of metar for values from ('2019-02-01') to ('2019-03-01')</sql>
+	    <sql>create table metar_y2019_m03 partition of metar for values from ('2019-03-01') to ('2019-04-01')</sql>
+	    <sql>create table metar_y2019_m04 partition of metar for values from ('2019-04-01') to ('2019-05-01')</sql>
+	    <sql>create table metar_y2019_m05 partition of metar for values from ('2019-05-01') to ('2019-06-01')</sql>
+	    <sql>create table metar_y2019_m06 partition of metar for values from ('2019-06-01') to ('2019-07-01')</sql>
+	    <sql>create table metar_y2019_m07 partition of metar for values from ('2019-07-01') to ('2019-08-01')</sql>
+	    <sql>create table metar_y2019_m08 partition of metar for values from ('2019-08-01') to ('2019-09-01')</sql>
+	    <sql>create table metar_y2019_m09 partition of metar for values from ('2019-09-01') to ('2019-10-01')</sql>
+	    <sql>create table metar_y2019_m10 partition of metar for values from ('2019-10-01') to ('2019-11-01')</sql>
+	    <sql>create table metar_y2019_m11 partition of metar for values from ('2019-11-01') to ('2019-12-01')</sql>
+	    <sql>create table metar_y2019_m12 partition of metar for values from ('2019-12-01') to ('2020-01-01')</sql>
+	
+	    <!-- 2020 -->
+	    <sql>create table metar_y2020_m01 partition of metar for values from ('2020-01-01') to ('2020-02-01')</sql>
+	    <sql>create table metar_y2020_m02 partition of metar for values from ('2020-02-01') to ('2020-03-01')</sql>
+	    <sql>create table metar_y2020_m03 partition of metar for values from ('2020-03-01') to ('2020-04-01')</sql>
+	    <sql>create table metar_y2020_m04 partition of metar for values from ('2020-04-01') to ('2020-05-01')</sql>
+	    <sql>create table metar_y2020_m05 partition of metar for values from ('2020-05-01') to ('2020-06-01')</sql>
+	    <sql>create table metar_y2020_m06 partition of metar for values from ('2020-06-01') to ('2020-07-01')</sql>
+	    <sql>create table metar_y2020_m07 partition of metar for values from ('2020-07-01') to ('2020-08-01')</sql>
+	    <sql>create table metar_y2020_m08 partition of metar for values from ('2020-08-01') to ('2020-09-01')</sql>
+	    <sql>create table metar_y2020_m09 partition of metar for values from ('2020-09-01') to ('2020-10-01')</sql>
+	    <sql>create table metar_y2020_m10 partition of metar for values from ('2020-10-01') to ('2020-11-01')</sql>
+	    <sql>create table metar_y2020_m11 partition of metar for values from ('2020-11-01') to ('2020-12-01')</sql>
+	    <sql>create table metar_y2020_m12 partition of metar for values from ('2020-12-01') to ('2021-01-01')</sql>
+	
+	    <!-- 2021 -->
+	    <sql>create table metar_y2021_m01 partition of metar for values from ('2021-01-01') to ('2021-02-01')</sql>
+	    <sql>create table metar_y2021_m02 partition of metar for values from ('2021-02-01') to ('2021-03-01')</sql>
+	    <sql>create table metar_y2021_m03 partition of metar for values from ('2021-03-01') to ('2021-04-01')</sql>
+	    <sql>create table metar_y2021_m04 partition of metar for values from ('2021-04-01') to ('2021-05-01')</sql>
+	    <sql>create table metar_y2021_m05 partition of metar for values from ('2021-05-01') to ('2021-06-01')</sql>
+	    <sql>create table metar_y2021_m06 partition of metar for values from ('2021-06-01') to ('2021-07-01')</sql>
+	    <sql>create table metar_y2021_m07 partition of metar for values from ('2021-07-01') to ('2021-08-01')</sql>
+	    <sql>create table metar_y2021_m08 partition of metar for values from ('2021-08-01') to ('2021-09-01')</sql>
+	    <sql>create table metar_y2021_m09 partition of metar for values from ('2021-09-01') to ('2021-10-01')</sql>
+	    <sql>create table metar_y2021_m10 partition of metar for values from ('2021-10-01') to ('2021-11-01')</sql>
+	    <sql>create table metar_y2021_m11 partition of metar for values from ('2021-11-01') to ('2021-12-01')</sql>
+	    <sql>create table metar_y2021_m12 partition of metar for values from ('2021-12-01') to ('2022-01-01')</sql>
+	
+	    <!-- 2022 -->
+	    <sql>create table metar_y2022_m01 partition of metar for values from ('2022-01-01') to ('2022-02-01')</sql>
+	    <sql>create table metar_y2022_m02 partition of metar for values from ('2022-02-01') to ('2022-03-01')</sql>
+	    <sql>create table metar_y2022_m03 partition of metar for values from ('2022-03-01') to ('2022-04-01')</sql>
+	    <sql>create table metar_y2022_m04 partition of metar for values from ('2022-04-01') to ('2022-05-01')</sql>
+	    <sql>create table metar_y2022_m05 partition of metar for values from ('2022-05-01') to ('2022-06-01')</sql>
+	    <sql>create table metar_y2022_m06 partition of metar for values from ('2022-06-01') to ('2022-07-01')</sql>
+	    <sql>create table metar_y2022_m07 partition of metar for values from ('2022-07-01') to ('2022-08-01')</sql>
+	    <sql>create table metar_y2022_m08 partition of metar for values from ('2022-08-01') to ('2022-09-01')</sql>
+	    <sql>create table metar_y2022_m09 partition of metar for values from ('2022-09-01') to ('2022-10-01')</sql>
+	    <sql>create table metar_y2022_m10 partition of metar for values from ('2022-10-01') to ('2022-11-01')</sql>
+	    <sql>create table metar_y2022_m11 partition of metar for values from ('2022-11-01') to ('2022-12-01')</sql>
+	    <sql>create table metar_y2022_m12 partition of metar for values from ('2022-12-01') to ('2023-01-01')</sql>
+	
+	    <!-- 2023 -->
+	    <sql>create table metar_y2023_m01 partition of metar for values from ('2023-01-01') to ('2023-02-01')</sql>
+	    <sql>create table metar_y2023_m02 partition of metar for values from ('2023-02-01') to ('2023-03-01')</sql>
+	    <sql>create table metar_y2023_m03 partition of metar for values from ('2023-03-01') to ('2023-04-01')</sql>
+	    <sql>create table metar_y2023_m04 partition of metar for values from ('2023-04-01') to ('2023-05-01')</sql>
+	    <sql>create table metar_y2023_m05 partition of metar for values from ('2023-05-01') to ('2023-06-01')</sql>
+	    <sql>create table metar_y2023_m06 partition of metar for values from ('2023-06-01') to ('2023-07-01')</sql>
+	    <sql>create table metar_y2023_m07 partition of metar for values from ('2023-07-01') to ('2023-08-01')</sql>
+	    <sql>create table metar_y2023_m08 partition of metar for values from ('2023-08-01') to ('2023-09-01')</sql>
+	    <sql>create table metar_y2023_m09 partition of metar for values from ('2023-09-01') to ('2023-10-01')</sql>
+	    <sql>create table metar_y2023_m10 partition of metar for values from ('2023-10-01') to ('2023-11-01')</sql>
+	    <sql>create table metar_y2023_m11 partition of metar for values from ('2023-11-01') to ('2023-12-01')</sql>
+	    <sql>create table metar_y2023_m12 partition of metar for values from ('2023-12-01') to ('2024-01-01')</sql>
+	
+	    <!-- 2024 -->
+	    <sql>create table metar_y2024_m01 partition of metar for values from ('2024-01-01') to ('2024-02-01')</sql>
+	    <sql>create table metar_y2024_m02 partition of metar for values from ('2024-02-01') to ('2024-03-01')</sql>
+	    <sql>create table metar_y2024_m03 partition of metar for values from ('2024-03-01') to ('2024-04-01')</sql>
+	    <sql>create table metar_y2024_m04 partition of metar for values from ('2024-04-01') to ('2024-05-01')</sql>
+	    <sql>create table metar_y2024_m05 partition of metar for values from ('2024-05-01') to ('2024-06-01')</sql>
+	    <sql>create table metar_y2024_m06 partition of metar for values from ('2024-06-01') to ('2024-07-01')</sql>
+	    <sql>create table metar_y2024_m07 partition of metar for values from ('2024-07-01') to ('2024-08-01')</sql>
+	    <sql>create table metar_y2024_m08 partition of metar for values from ('2024-08-01') to ('2024-09-01')</sql>
+	    <sql>create table metar_y2024_m09 partition of metar for values from ('2024-09-01') to ('2024-10-01')</sql>
+	    <sql>create table metar_y2024_m10 partition of metar for values from ('2024-10-01') to ('2024-11-01')</sql>
+	    <sql>create table metar_y2024_m11 partition of metar for values from ('2024-11-01') to ('2024-12-01')</sql>
+	    <sql>create table metar_y2024_m12 partition of metar for values from ('2024-12-01') to ('2025-01-01')</sql>
+	
+	    <!-- 2025 -->
+	    <sql>create table metar_y2025_m01 partition of metar for values from ('2025-01-01') to ('2025-02-01')</sql>
+	    <sql>create table metar_y2025_m02 partition of metar for values from ('2025-02-01') to ('2025-03-01')</sql>
+	    <sql>create table metar_y2025_m03 partition of metar for values from ('2025-03-01') to ('2025-04-01')</sql>
+	    <sql>create table metar_y2025_m04 partition of metar for values from ('2025-04-01') to ('2025-05-01')</sql>
+	    <sql>create table metar_y2025_m05 partition of metar for values from ('2025-05-01') to ('2025-06-01')</sql>
+	    <sql>create table metar_y2025_m06 partition of metar for values from ('2025-06-01') to ('2025-07-01')</sql>
+	    <sql>create table metar_y2025_m07 partition of metar for values from ('2025-07-01') to ('2025-08-01')</sql>
+	    <sql>create table metar_y2025_m08 partition of metar for values from ('2025-08-01') to ('2025-09-01')</sql>
+	    <sql>create table metar_y2025_m09 partition of metar for values from ('2025-09-01') to ('2025-10-01')</sql>
+	    <sql>create table metar_y2025_m10 partition of metar for values from ('2025-10-01') to ('2025-11-01')</sql>
+	    <sql>create table metar_y2025_m11 partition of metar for values from ('2025-11-01') to ('2025-12-01')</sql>
+	    <sql>create table metar_y2025_m12 partition of metar for values from ('2025-12-01') to ('2026-01-01')</sql>
+	</changeSet>
+
+</databaseChangeLog>
