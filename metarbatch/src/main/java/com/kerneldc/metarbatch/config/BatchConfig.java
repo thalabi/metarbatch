@@ -2,19 +2,16 @@ package com.kerneldc.metarbatch.config;
 
 import java.util.List;
 
-import javax.persistence.EntityManagerFactory;
-
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
-import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
-import org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor;
+import org.springframework.batch.core.converter.DefaultJobParametersConverter;
 import org.springframework.batch.core.explore.JobExplorer;
+import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.database.JpaItemWriter;
@@ -25,6 +22,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.retry.annotation.EnableRetry;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import com.kerneldc.metarbatch.batch.AlreadyRunningNotificationTasklet;
 import com.kerneldc.metarbatch.batch.DeleteFileTasklet;
@@ -43,40 +41,34 @@ import com.kerneldc.metarbatch.service.EmailService;
 import com.kerneldc.metarbatch.service.MetarService;
 import com.kerneldc.metarbatch.xml.schema.metar.METAR;
 
+import jakarta.persistence.EntityManagerFactory;
 import lombok.RequiredArgsConstructor;
 
 @Configuration
-@EnableBatchProcessing
+@EnableBatchProcessing(dataSourceRef = "batchDataSource")
 @EnableRetry
 @RequiredArgsConstructor
 public class BatchConfig {
 	
 	private final JobExplorer jobExplorer;
 	private final JobRepository jobRepository;
-	private final JobRegistry jobRegistry;
-	private final JobBuilderFactory jobBuilderFactory;
-	private final StepBuilderFactory stepBuilderFactory;
 	private final JdbcTemplate jdbcTemplate;
 	private final EmailService emailService;
 	private final MetarService metarService;
+	private final PlatformTransactionManager transactionManage;
 	private final MetarStageRepository metarStageRepository;
 	private final EntityManagerFactory entityManagerFactory;
 	
 	public static final String METAR_JOB = "MetarJob";
-	
-	// Needed for job restart
+
 	@Bean
-	public JobRegistryBeanPostProcessor jobRegistryBeanPostProcessor() {
-	    JobRegistryBeanPostProcessor postProcessor = new JobRegistryBeanPostProcessor();
-	    postProcessor.setJobRegistry(jobRegistry);
-	    return postProcessor;
+	public DefaultJobParametersConverter defaultJobParametersConverter() {
+		return new DefaultJobParametersConverter();
 	}
-	
-	
 	
 	@Bean
 	public Step lookupRunningJobsTasklet() {
-		return stepBuilderFactory.get("LookupRunningJobsTasklet").tasklet(new LookupRunningJobsTasklet(jobExplorer)).build();
+		return new StepBuilder("LookupRunningJobsTasklet", jobRepository).tasklet(new LookupRunningJobsTasklet(jobExplorer), transactionManage).build();
 	}
 	@Bean
 	public MultipleRunningJobsDecider multipleRunningJobsDecider() {
@@ -84,20 +76,20 @@ public class BatchConfig {
 	}
 	@Bean
 	public Step alreadyRunningNotificationTasklet() {
-		return stepBuilderFactory.get("AlreadyRunningNotificationTasklet").tasklet(new AlreadyRunningNotificationTasklet(emailService)).build();
+		return new StepBuilder("AlreadyRunningNotificationTasklet", jobRepository).tasklet(new AlreadyRunningNotificationTasklet(emailService, defaultJobParametersConverter()), transactionManage).build();
 	}
 	@Bean
 	public Step downloadStep() {
-		return stepBuilderFactory.get("DownloadTasklet").tasklet(new DownloadTasklet(metarService)).build();
+		return new StepBuilder("DownloadTasklet", jobRepository).tasklet(new DownloadTasklet(metarService), transactionManage).build();
 	}
 	@Bean
 	public Step transformXmlStep() {
-		return stepBuilderFactory.get("TransformXmlTasklet").tasklet(new TransformXmlTasklet()).build();
+		return new StepBuilder("TransformXmlTasklet", jobRepository).tasklet(new TransformXmlTasklet(), transactionManage).build();
 	}
 
 	@Bean
 	public Step deleteMetarStageTaskletlStep() {
-		return stepBuilderFactory.get("DeleteMetarStageTasklet").tasklet(new DeleteMetarStageTasklet(metarStageRepository)).build();
+		return new StepBuilder("DeleteMetarStageTasklet", jobRepository).tasklet(new DeleteMetarStageTasklet(metarStageRepository), transactionManage).build();
 	}
 
 	// insertMetarStageStep begin
@@ -117,25 +109,24 @@ public class BatchConfig {
 	}
 	@Bean
 	public Step insertMetarStageStep(ItemReader<METAR> metarListItemReader) {
-		return 
-				stepBuilderFactory.get("InsertMetarStage")
-				.<METAR, MetarStage>chunk(1000)
-				.reader(metarListItemReader)
-				.processor(metarProcessor())
-				.writer(metarStageWriter())
-				.listener(new InsertMetarStageStepListener())
-				.build();
+		return new StepBuilder("InsertMetarStage", jobRepository)
+		.<METAR, MetarStage>chunk(1000, transactionManage)
+		.reader(metarListItemReader)
+		.processor(metarProcessor())
+		.writer(metarStageWriter())
+		.listener(new InsertMetarStageStepListener())
+		.build();
 	}
 	// insertMetarStageStep end
 
 	@Bean
 	public Step mergeMetarStep() {
-		return stepBuilderFactory.get("MergeMetarTasklet").tasklet(new MergeMetarTasklet(jdbcTemplate)).build();
+		return new StepBuilder("MergeMetarTasklet", jobRepository).tasklet(new MergeMetarTasklet(jdbcTemplate), transactionManage).build();
 	}
 
 	@Bean
 	public Step deleteFileStep() {
-		return stepBuilderFactory.get("DeleteFileTasklet").tasklet(new DeleteFileTasklet()).build();
+		return new StepBuilder("DeleteFileTasklet", jobRepository).tasklet(new DeleteFileTasklet(), transactionManage).build();
 	}
 	
 	@Value("${metar.max.attempts.to.abandon:3}")
@@ -143,7 +134,7 @@ public class BatchConfig {
 
 	@Bean
 	public Job metarJob(Step insertMetarStageStep) {
-		return jobBuilderFactory.get(METAR_JOB)
+		return new JobBuilder(METAR_JOB, jobRepository)
 				.incrementer(new RunIdIncrementer())
 				.start(lookupRunningJobsTasklet())
 				.next(multipleRunningJobsDecider()).on(MultipleRunningJobsDecider.RUNNING)
@@ -154,7 +145,8 @@ public class BatchConfig {
 					.next(insertMetarStageStep)
 					.next(mergeMetarStep()).next(deleteFileStep())
 				.end()
-				.listener(new MetarJobFailureListener(emailService, jobExplorer, jobRepository, maxAttemptsToAbandon))
+				.listener(new MetarJobFailureListener(emailService, jobExplorer, jobRepository, maxAttemptsToAbandon, defaultJobParametersConverter()))
 				.build();
 	}
+
 }

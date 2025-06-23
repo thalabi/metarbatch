@@ -60,8 +60,10 @@
             <column name="vert_vis_ft" type="bigint"/>
             <column name="metar_type" type="varchar(5)"/>
             <column name="elevation_m" type="decimal"/>
-            
         </createTable>
+        <modifySql dbms="postgresql">
+    	    <append value="partition by range (observation_time)"/>
+	    </modifySql>
     </changeSet>
 
 </databaseChangeLog>

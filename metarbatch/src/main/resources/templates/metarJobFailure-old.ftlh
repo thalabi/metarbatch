@@ -8,7 +8,11 @@
 		<div style="font-style: underline;">Job parameters:</div>
 		<ul>
 			<#list jobParametersMap as name, value>
+			<#if (name == jobTimestampFieldName)>
+				<li>${name} = ${value?number?number_to_datetime}</li>
+			<#else>
 				<li>${name} = ${value}</li>
+			</#if>
 			</#list>  
 		</ul>
 	</#if>
