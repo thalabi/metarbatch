@@ -9,7 +9,7 @@
 	</parent>
 	<groupId>com.kerneldc</groupId>
 	<artifactId>metarbatch</artifactId>
-	<version>1.0.2-PG-SNAPSHOT</version>
+	<version>1.1.0-SNAPSHOT</version>
 	<name>metarbatch</name>
 	<properties>
 		<java.version>21</java.version>
