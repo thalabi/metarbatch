@@ -42,23 +42,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class MetarJobManager {
 
-//	private static final Date JOB_END_TIME = TimeUtils.toDate(LocalDateTime.of(9999, 12, 31, 23, 59, 59));
 	private static final LocalDateTime JOB_END_TIME = LocalDateTime.of(9999, 12, 31, 23, 59, 59);
 
-//	private static final String RESTART_JOBS_SQL = """
-//		with
-//		job_instance as (
-//			select bji.job_instance_id id from batch_job_instance bji where bji.job_name = ?),
-//		failed_execution as (
-//			select job_execution_id, job_instance_id from batch_job_execution bje join job_instance on bje.job_instance_id = job_instance.id where bje.status != 'COMPLETED' and bje.status != 'ABANDONED'),
-//		completed_execution as (
-//			select job_execution_id, job_instance_id from batch_job_execution bje join job_instance on bje.job_instance_id = job_instance.id where bje.status = 'COMPLETED'),
-//		execution_to_restart as (
-//			select max(job_execution_id) last_job_execution_id, job_instance_id from failed_execution fe where fe.job_instance_id not in (select ce.job_instance_id from completed_execution ce)
-//				group by job_instance_id
-//				order by last_job_execution_id)
-//		select last_job_execution_id from execution_to_restart
-//	""";
 	private static final String RESTART_JOBS_SQL = """
 		with
 		failed_job_instances as (
