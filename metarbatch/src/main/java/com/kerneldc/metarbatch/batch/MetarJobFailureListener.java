@@ -7,6 +7,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
+import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.converter.DefaultJobParametersConverter;
 import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.repository.JobRepository;
@@ -44,9 +45,10 @@ public class MetarJobFailureListener implements JobExecutionListener {
        	
        	LOGGER.error("Job parameters:");
 //       	var jobParametersMap = jobExecution.getJobParameters().toProperties();
-		var jobParametersMap = defaultJobParametersConverter.getProperties(jobExecution.getJobParameters());
+//		var jobParametersMap = defaultJobParametersConverter.getProperties(jobExecution.getJobParameters());
+		var jobParametersMap = jobExecution.getJobParameters().getParameters();
 
-       	for (Map.Entry<Object, Object> entry : jobParametersMap.entrySet()) {
+       	for (Map.Entry<String, JobParameter<?>> entry : jobParametersMap.entrySet()) {
        		LOGGER.error("Parameter name: [{}], value: [{}]", entry.getKey(), entry.getValue());
        	}
        	

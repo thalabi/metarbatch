@@ -7,8 +7,12 @@
 	<#if (jobParametersMap?size gt 0)>
 		<div style="font-style: underline;">Job parameters:</div>
 		<ul>
-			<#list jobParametersMap as name, value>
-				<li>${name} = ${value}</li>
+			<#list jobParametersMap as key, jobParameter>
+				<#if (jobParameter.type?contains("Date"))>
+					<li>${key} = ${jobParameter.value?string("yyyy-MM-dd HH:mm:ss")}</li>
+				<#else>
+					<li>${key} = ${jobParameter.value}</li>
+				</#if>
 			</#list>  
 		</ul>
 	</#if>

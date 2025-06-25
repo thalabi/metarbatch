@@ -2,14 +2,13 @@ package com.kerneldc.metarbatch.service;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.YearMonth;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.InternetAddress;
-
+import org.springframework.batch.core.JobParameter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -24,6 +23,8 @@ import freemarker.template.Configuration;
 import freemarker.template.MalformedTemplateNameException;
 import freemarker.template.TemplateException;
 import freemarker.template.TemplateNotFoundException;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.InternetAddress;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,15 +42,17 @@ public class EmailService {
 	private static final String METAR_JOB_ALREADY_RUNNING_NOTIFICATION_SUBJECT = "Metar Job Already Running";
 	private static final String METAR_JOB_RESTART_FAILURE_NOTIFICATION_SUBJECT = "Metar Job Restart Failure";
 	private static final String METAR_JOB_SET_TO_ABANDONED_NOTIFICATION_SUBJECT = "Metar Job set to 'ABANDONED'";
+	private static final String CREATED_METAR_TABLE_PARTITION_NOTIFICATION_SUBJECT = "Create Metar Table Partition";
 	private static final String METAR_JOB_FAILURE_TEMPLATE = "metarJobFailure.ftlh";
 	private static final String METAR_JOB_ALREADY_RUNNING_TEMPLATE = "metarJobAlreadyRunning.ftlh";
 	private static final String METAR_JOB_RESTART_FAILURE_TEMPLATE = "metarJobRestartFailure.ftlh";
 	private static final String METAR_JOB_SET_TO_ABANDONED_TEMPLATE = "metarJobSetToAbandoned.ftlh";
+	private static final String CREATED_METAR_TABLE_PARTITION_TEMPLATE = "createdMetarPartition.ftlh";
 	
 	private final JavaMailSender javaMailSender;
 	private final Configuration freeMarkerConfiguration;
 	
-	public void sendMetarJobFailure(Properties jobParametersMap, List<String> stacktraceList) throws ApplicationException {
+	public void sendMetarJobFailure(Map<String, JobParameter<?>> jobParametersMap, List<String> stacktraceList) throws ApplicationException {
 		var mimeMessage = javaMailSender.createMimeMessage();
 		var mimeMessageHelper = new MimeMessageHelper(mimeMessage, StandardCharsets.UTF_8.name());
 		try {
@@ -120,7 +123,24 @@ public class EmailService {
 		}
 		LOGGER.info("Metar job 'set to ABANDONED' notification email sent to: {}", metarJobNotificationTo);
 	}
-	private String processMetarJobFailureTemplate(Properties jobParametersMap, List<String> stacktraceList) throws IOException, TemplateException {
+	public void sendCreatedMetarTablePartition(YearMonth yearMonth) throws ApplicationException {
+		var mimeMessage = javaMailSender.createMimeMessage();
+		var mimeMessageHelper = new MimeMessageHelper(mimeMessage, StandardCharsets.UTF_8.name());
+		try {
+			mimeMessageHelper.setFrom(emailNotificationFrom);
+			mimeMessageHelper.setTo(InternetAddress.parse(metarJobNotificationTo));
+			mimeMessageHelper.setSubject(CREATED_METAR_TABLE_PARTITION_NOTIFICATION_SUBJECT);
+			mimeMessageHelper.setText(processCreatedMetarTablePartitionTemplate(yearMonth), true);
+			javaMailSender.send(mimeMessage);
+		} catch (MessagingException | IOException | TemplateException e) {
+			var message = "Exception while sending Metar Job Restart Failure email."; 
+			LOGGER.error(message, e);
+			throw new ApplicationException(message + " (" + e.getMessage() + ")");
+			
+		}
+		LOGGER.info("Metar job 'set to ABANDONED' notification email sent to: {}", metarJobNotificationTo);
+	}
+	private String processMetarJobFailureTemplate(Map<String, JobParameter<?>> jobParametersMap, List<String> stacktraceList) throws IOException, TemplateException {
 		Map<String, Object> templateModelMap = new HashMap<>();
 		templateModelMap.put("jobParametersMap", jobParametersMap);
 		templateModelMap.put("stacktraceList", stacktraceList);
@@ -145,6 +165,13 @@ public class EmailService {
 		Map<String, Object> templateModelMap = new HashMap<>();
 		templateModelMap.put("jobExecutionId", jobExecutionId);
 		return FreeMarkerTemplateUtils.processTemplateIntoString(freeMarkerConfiguration.getTemplate(METAR_JOB_SET_TO_ABANDONED_TEMPLATE), templateModelMap);
+	}
+	
+	private String processCreatedMetarTablePartitionTemplate(YearMonth yearMonth) throws TemplateNotFoundException, MalformedTemplateNameException, ParseException, IOException, TemplateException {
+		Map<String, Object> templateModelMap = new HashMap<>();
+		templateModelMap.put("year", yearMonth.getYear());
+		templateModelMap.put("month", yearMonth.getMonthValue());
+		return FreeMarkerTemplateUtils.processTemplateIntoString(freeMarkerConfiguration.getTemplate(CREATED_METAR_TABLE_PARTITION_TEMPLATE), templateModelMap);
 	}
 	
 }

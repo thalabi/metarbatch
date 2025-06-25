@@ -3,6 +3,7 @@ package com.kerneldc.metarbatch.service;
 import java.sql.ResultSet;
 import java.text.MessageFormat;
 import java.time.LocalDate;
+import java.time.YearMonth;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -11,6 +12,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.kerneldc.metarbatch.AppConstants;
+import com.kerneldc.metarbatch.exception.ApplicationException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,24 +37,13 @@ public class MetarPartitionService {
 	
 	private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 	private final JdbcTemplate jdbcTemplate;
+	private final EmailService emailService;
 	
-	private String thisMonthPartitionName() {
-		return getPartitionName(0);
-	}
-	private String nextMonthPartitionName() {
-		return getPartitionName(1);
-	}
 	private String getPartitionName(int monthsToAdd) {
 		var nextMonth = LocalDate.now().plusMonths(monthsToAdd);
 		return MessageFormat.format(PARTITION_NAME_TEMPLATE, nextMonth.getYear(), nextMonth.getMonthValue());
 	}
-	
-	private boolean thisMonthPartitionExists() {
-		return partitionExists(0);
-	}
-	private boolean nextMonthPartitionExists() {
-		return partitionExists(1);
-	}
+
 	private boolean partitionExists(int monthsToAdd) {
 		var partitionName = getPartitionName(monthsToAdd);
 		LOGGER.info("Checking that {} month partition [{}] exists ...", (monthsToAdd == 0 ? "this" : "next"), partitionName);
@@ -62,29 +53,31 @@ public class MetarPartitionService {
 		return exists;
 	}
 
-	public void createThisMonthPartition() {
-		if (thisMonthPartitionExists()) {
+	private YearMonth getYearMonth(int monthsToAdd) {
+		var date = LocalDate.now().plusMonths(monthsToAdd);
+		return YearMonth.from(date);
+	}
+	
+	private void createPartition(int monthsToAdd) throws ApplicationException {
+		if (partitionExists(monthsToAdd)) {
 			return;
 		}
 		var now = LocalDate.now();
-		var month1 = AppConstants.DATE_FORMATER_YYYY_MM_DD.format(now.withDayOfMonth(1));
-		var month2 = AppConstants.DATE_FORMATER_YYYY_MM_DD.format(now.plusMonths(1).withDayOfMonth(1));
-		var sql = String.format(CREATE_PARTITION_SQL_TEMPLATE, thisMonthPartitionName(), month1, month2);
-		LOGGER.info("Creating this month partition: [{}]", sql);
+		var month1 = AppConstants.DATE_FORMATER_YYYY_MM_DD.format(now.plusMonths(monthsToAdd).withDayOfMonth(1));
+		var month2 = AppConstants.DATE_FORMATER_YYYY_MM_DD.format(now.plusMonths(monthsToAdd+1L).withDayOfMonth(1));
+		var sql = String.format(CREATE_PARTITION_SQL_TEMPLATE, getPartitionName(monthsToAdd), month1, month2);
+		LOGGER.info("Creating {} month partition: [{}]", (monthsToAdd == 0 ? "this" : "next"), sql);
 		jdbcTemplate.execute(sql);
+		emailService.sendCreatedMetarTablePartition(getYearMonth(monthsToAdd));
+	}
+
+	@Scheduled(cron = "${create.partition.schedule.cron.expression}")
+	public void createThisMonthPartition() throws ApplicationException {
+		createPartition(0);
 	}
 	
 	@Scheduled(cron = "${create.partition.schedule.cron.expression}")
-	public void createNextMonthPartition() {
-		if (nextMonthPartitionExists()) {
-			return;
-		}
-		var now = LocalDate.now();
-		var month1 = AppConstants.DATE_FORMATER_YYYY_MM_DD.format(now.plusMonths(1).withDayOfMonth(1));
-		var month2 = AppConstants.DATE_FORMATER_YYYY_MM_DD.format(now.plusMonths(2).withDayOfMonth(1));
-		var sql = String.format(CREATE_PARTITION_SQL_TEMPLATE, nextMonthPartitionName(), month1, month2);
-		LOGGER.info("Creating next month partition: [{}]", sql);
-		jdbcTemplate.execute(sql);
+	public void createNextMonthPartition() throws ApplicationException {
+		createPartition(1);
 	}
-
 }
