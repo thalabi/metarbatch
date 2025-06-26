@@ -11,10 +11,9 @@
 
 	<!-- Tables -->
     <changeSet id="metar_stage" author="thalabi">
-    	<createSequence sequenceName="metar_stage_seq"/>
         <createTable tableName="metar_stage">
-            <column name="id" type="bigint">
-                <constraints primaryKey="true"/>
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
             </column>
             <column name="lk" type="varchar(255)"> 
                 <constraints nullable="false"/> 

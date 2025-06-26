@@ -2,13 +2,11 @@ package com.kerneldc.metarbatch.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.SequenceGenerator;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@SequenceGenerator(name = "default_seq_gen", sequenceName = "metar_stage_seq", allocationSize = 1)
 @Getter @Setter
 
 public class MetarStage extends AbstractPersistableEntity {

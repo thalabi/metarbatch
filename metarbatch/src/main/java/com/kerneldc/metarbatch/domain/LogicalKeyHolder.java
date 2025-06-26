@@ -3,12 +3,12 @@ package com.kerneldc.metarbatch.domain;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
+import java.util.Date;
 
 import org.apache.commons.lang3.StringUtils;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 import lombok.Data;
 
 @Embeddable
@@ -30,21 +30,27 @@ public class LogicalKeyHolder implements Serializable, ILogicallyKeyed {
 				stringKeyParts[i++] = StringUtils.EMPTY;
 				continue;
 			}
+			if (keyPart.getClass().isEnum()) {
+				stringKeyParts[i++] = ((Enum<?>)keyPart).name();
+				continue;
+			}
 			switch (keyPart.getClass().getSimpleName()) {
-			case "String":
-				stringKeyParts[i++] = (String)keyPart;
-				break;
-			case "Integer", "Double", "Long":
-				stringKeyParts[i++] = String.valueOf(keyPart);	
-				break;
-			case "LocalDateTime":
-				stringKeyParts[i++] = ((LocalDateTime)keyPart).format(AbstractEntity.LOCAL_DATE_TIME_FORMATTER);
-				break;
-			case "OffsetDateTime":
-				stringKeyParts[i++] = ((OffsetDateTime)keyPart).format(AbstractEntity.OFFSET_DATE_TIME_FORMATTER);
-				break;
-			default:
-				throw new IllegalArgumentException(String.format("Unsupported data type in logical key: %s", keyPart.getClass().getSimpleName()));
+				case "Boolean" ->
+					stringKeyParts[i++] = ((Boolean)keyPart).toString();
+				case "String" ->
+					stringKeyParts[i++] = (String)keyPart;
+				case "Integer", "Long", "Float", "Double", "BigDecimal", "Short" ->
+					stringKeyParts[i++] = String.valueOf(keyPart);	
+				case "LocalDateTime" ->
+					stringKeyParts[i++] = ((LocalDateTime)keyPart).format(AbstractEntity.LOCAL_DATE_TIME_FORMATTER);
+				case "OffsetDateTime" ->
+					stringKeyParts[i++] = ((OffsetDateTime)keyPart).format(AbstractEntity.OFFSET_DATE_TIME_UTC_FORMATTER); // to UTC
+				case "Date" ->
+					stringKeyParts[i++] = AbstractEntity.DATE_FORMAT.format((Date)keyPart);
+				case "Timestamp" ->
+					stringKeyParts[i++] = AbstractEntity.DATE_TIME_FORMAT.format((Date)keyPart);
+				default ->
+					throw new IllegalArgumentException(String.format("Logical key part [%s] is of unsupported data type [%s]", keyPart, keyPart.getClass().getSimpleName()));
 			}
 		}
 		lk.setLogicalKey(concatLogicalKeyParts(stringKeyParts));
