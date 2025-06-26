@@ -5,6 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.BeanUtils;
 
+import com.kerneldc.metarbatch.domain.MetarPk;
 import com.kerneldc.metarbatch.domain.MetarStage;
 import com.kerneldc.metarbatch.xml.schema.metar.METAR;
 
@@ -18,6 +19,11 @@ public class MetarProcessor implements ItemProcessor<METAR, MetarStage> {
 		var metarStage = new MetarStage();
 
 		BeanUtils.copyProperties(metar, metarStage);
+		// Handle populating metarPk
+		var metarPk = new MetarPk();
+		metarPk.setStationId(metar.getStationId());
+		metarPk.setObservationTime(metar.getObservationTime());
+		metarStage.setMetarPk(metarPk);
 
 		if (metar.getQualityControlFlags() != null) {
 			if (StringUtils.equals(metar.getQualityControlFlags().getCorrected(), TRUE)) {

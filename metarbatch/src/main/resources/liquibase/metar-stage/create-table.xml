@@ -9,22 +9,15 @@
 		http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
 		http://www.liquibase.org/xml/ns/pro	http://www.liquibase.org/xml/ns/pro/liquibase-pro-4.5.xsd">
 
-	<!-- Tables -->
     <changeSet id="metar_stage" author="thalabi">
         <createTable tableName="metar_stage">
-            <column autoIncrement="true" name="id" type="BIGINT">
+            <column name="raw_text" type="varchar(4000)"/>
+            <column name="station_id" type="varchar(5)">
                 <constraints nullable="false" primaryKey="true"/>
             </column>
-            <column name="lk" type="varchar(255)"> 
-                <constraints nullable="false"/> 
-            </column> 
-            <column name="version" type="bigint">
-                <constraints nullable="false"/>
+            <column name="observation_time" type="varchar(20)">
+                <constraints nullable="false" primaryKey="true"/>
             </column>
-
-            <column name="raw_text" type="varchar(4000)"/>
-            <column name="station_id" type="varchar(5)"/>
-            <column name="observation_time" type="varchar(20)"/>
             <column name="latitude" type="decimal"/>
             <column name="longitude" type="decimal"/>
             <column name="temp_c" type="decimal"/>

@@ -1,24 +1,27 @@
 package com.kerneldc.metarbatch.domain;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
 @Entity
 @Getter @Setter
 
-public class MetarStage extends AbstractPersistableEntity {
+public class MetarStage /*extends AbstractEntity*/ {
 	
-	private static final long serialVersionUID = 1L;
+//	private static final long serialVersionUID = 1L;
 
 	private String rawText;
 	
-	@Setter(AccessLevel.NONE)
-	private String stationId;
-	@Setter(AccessLevel.NONE)
-	private String observationTime;
+	@EmbeddedId
+	private MetarPk metarPk;
+	
+//	@Setter(AccessLevel.NONE)
+//	private String stationId;
+//	@Setter(AccessLevel.NONE)
+//	private String observationTime;
 	
     private Float latitude;
     private Float longitude;
@@ -87,18 +90,18 @@ public class MetarStage extends AbstractPersistableEntity {
 
 
 
-	public void setStationId(String stationId) {
-		this.stationId = stationId;
-		setLogicalKeyHolder();
-	}
-	public void setObservationTime(String observationTime) {
-		this.observationTime = observationTime;
-		setLogicalKeyHolder();
-	}
-
-	@Override
-	protected void setLogicalKeyHolder() {
-		var logicalKeyHolder = LogicalKeyHolder.build(stationId, observationTime);
-		setLogicalKeyHolder(logicalKeyHolder);
-	}
+//	public void setStationId(String stationId) {
+//		this.stationId = stationId;
+//		setLogicalKeyHolder();
+//	}
+//	public void setObservationTime(String observationTime) {
+//		this.observationTime = observationTime;
+//		setLogicalKeyHolder();
+//	}
+//
+//	@Override
+//	protected void setLogicalKeyHolder() {
+//		var logicalKeyHolder = LogicalKeyHolder.build(stationId, observationTime);
+//		setLogicalKeyHolder(logicalKeyHolder);
+//	}
 }
