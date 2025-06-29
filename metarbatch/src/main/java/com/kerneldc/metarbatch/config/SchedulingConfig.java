@@ -1,6 +1,5 @@
 package com.kerneldc.metarbatch.config;
 
-import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -8,7 +7,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 @Configuration
 @EnableScheduling
-@EnableBatchProcessing(dataSourceRef = "batchDataSource")
 public class SchedulingConfig {
 
     private static final int POOL_SIZE = 3;
