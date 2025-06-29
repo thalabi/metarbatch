@@ -5,7 +5,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 
 @Configuration
 @EnableScheduling
@@ -21,14 +20,13 @@ public class SchedulingConfig {
      * @param taskRegistrar The task register.
      */
 	@Bean
-	public void configureTasks(ScheduledTaskRegistrar taskRegistrar) {
+	public ThreadPoolTaskScheduler threadPoolTaskScheduler() {
 		ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
 
 		threadPoolTaskScheduler.setPoolSize(POOL_SIZE);
 		threadPoolTaskScheduler.setThreadNamePrefix(THREAD_NAME_PREFIX);
-		threadPoolTaskScheduler.initialize();
-		
-		taskRegistrar.setTaskScheduler(threadPoolTaskScheduler);
-	}
+		threadPoolTaskScheduler.setWaitForTasksToCompleteOnShutdown(true); // Wait for tasks on shutdown
+        return threadPoolTaskScheduler;
+    }
 
 }
