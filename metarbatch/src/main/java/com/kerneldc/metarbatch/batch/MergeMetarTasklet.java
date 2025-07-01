@@ -23,7 +23,10 @@ USING (
   SELECT
     raw_text,
     station_id,
-    TO_TIMESTAMP(REPLACE(REPLACE(observation_time, 'T', ' '), 'Z', ''), 'YYYY-MM-DD HH24:MI:SS') AS observation_time,
+    
+    --TO_TIMESTAMP(REPLACE(REPLACE(observation_time, 'T', ' '), 'Z', ''), 'YYYY-MM-DD HH24:MI:SS') AS observation_time,
+    observation_time,
+    
     latitude,
     longitude,
     temp_c,

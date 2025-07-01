@@ -14,4 +14,7 @@
 	
 	<include file="liquibase/metar-stage/create-table.xml"/>
 
+    <include file="liquibase/remote-api-call/create-table.xml"/>
+    <include file="liquibase/remote-api-call-log/create-table.xml"/>
+
 </databaseChangeLog>

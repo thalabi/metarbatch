@@ -15,7 +15,8 @@
             <column name="station_id" type="varchar(5)">
                 <constraints nullable="false" primaryKey="true"/>
             </column>
-            <column name="observation_time" type="varchar(20)">
+            <!-- column name="observation_time" type="varchar(20)"-->
+            <column name="observation_time" type="datetime">
                 <constraints nullable="false" primaryKey="true"/>
             </column>
             <column name="latitude" type="decimal"/>

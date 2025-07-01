@@ -8,7 +8,7 @@ import lombok.Setter;
 
 @Entity
 @Getter @Setter
-public class MetarStage {
+public class Metar {
 	
 	private String rawText;
 	

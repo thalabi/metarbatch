@@ -1,5 +1,9 @@
 package com.kerneldc.metarbatch.batch;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.batch.item.ItemProcessor;
@@ -22,7 +26,9 @@ public class MetarProcessor implements ItemProcessor<METAR, MetarStage> {
 		// Handle populating metarPk
 		var metarPk = new MetarPk();
 		metarPk.setStationId(metar.getStationId());
-		metarPk.setObservationTime(metar.getObservationTime());
+		var instant = Instant.parse(metar.getObservationTime());
+		var localDateTimeUtc = LocalDateTime.ofInstant(instant, ZoneId.of("UTC"));
+		metarPk.setObservationTime(localDateTimeUtc);
 		metarStage.setMetarPk(metarPk);
 
 		if (metar.getQualityControlFlags() != null) {

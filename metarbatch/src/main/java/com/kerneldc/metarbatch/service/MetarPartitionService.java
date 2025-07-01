@@ -71,7 +71,6 @@ public class MetarPartitionService {
 		emailService.sendCreatedMetarTablePartition(getYearMonth(monthsToAdd));
 	}
 
-	@Scheduled(cron = "${create.partition.schedule.cron.expression}")
 	public void createThisMonthPartition() throws ApplicationException {
 		createPartition(0);
 	}

@@ -43,12 +43,14 @@ public class EmailService {
 	private static final String METAR_JOB_RESTART_FAILURE_NOTIFICATION_SUBJECT = "Metar Job Restart Failure";
 	private static final String METAR_JOB_SET_TO_ABANDONED_NOTIFICATION_SUBJECT = "Metar Job set to 'ABANDONED'";
 	private static final String CREATED_METAR_TABLE_PARTITION_NOTIFICATION_SUBJECT = "Create Metar Table Partition";
+	private static final String REFRESH_AIRPORT_INFO_FAILURE_SUBJECT = "Refresh Airport Identifiers Failure";
 	private static final String METAR_JOB_FAILURE_TEMPLATE = "metarJobFailure.ftlh";
 	private static final String METAR_JOB_ALREADY_RUNNING_TEMPLATE = "metarJobAlreadyRunning.ftlh";
 	private static final String METAR_JOB_RESTART_FAILURE_TEMPLATE = "metarJobRestartFailure.ftlh";
 	private static final String METAR_JOB_SET_TO_ABANDONED_TEMPLATE = "metarJobSetToAbandoned.ftlh";
 	private static final String CREATED_METAR_TABLE_PARTITION_TEMPLATE = "createdMetarPartition.ftlh";
-	
+	private static final String REFRESH_AIRPORT_INFO_FAILURE_TEMPLATE = "refreshAirportIdentifiersFailure.ftlh";
+
 	private final JavaMailSender javaMailSender;
 	private final Configuration freeMarkerConfiguration;
 	
@@ -140,6 +142,25 @@ public class EmailService {
 		}
 		LOGGER.info("Metar job 'set to ABANDONED' notification email sent to: {}", metarJobNotificationTo);
 	}
+	
+	// TODO not called
+	public void sendRefreshAirportInfoFailureEmail(ApplicationException loadingFromExternalApiException) {
+		var mimeMessage = javaMailSender.createMimeMessage();
+		var mimeMessageHelper = new MimeMessageHelper(mimeMessage, StandardCharsets.UTF_8.name());
+		try {
+			mimeMessageHelper.setFrom(emailNotificationFrom);
+			mimeMessageHelper.setTo(InternetAddress.parse(metarJobNotificationTo));
+			mimeMessageHelper.setSubject(REFRESH_AIRPORT_INFO_FAILURE_SUBJECT);
+			mimeMessageHelper.setText(processRefreshAirprtInfoFailureTemplate(loadingFromExternalApiException), true);
+			javaMailSender.send(mimeMessage);
+			LOGGER.info("Sent refresh airport information failure email to: {}", metarJobNotificationTo);
+		} catch (MessagingException | IOException | TemplateException e) {
+			var message = "Exception while sending failure email."; 
+			LOGGER.error(message, e);
+			LOGGER.info("Failed to send refresh airport information failure email to: {}", metarJobNotificationTo);
+		}
+	}
+
 	private String processMetarJobFailureTemplate(Map<String, JobParameter<?>> jobParametersMap, List<String> stacktraceList) throws IOException, TemplateException {
 		Map<String, Object> templateModelMap = new HashMap<>();
 		templateModelMap.put("jobParametersMap", jobParametersMap);
@@ -173,5 +194,10 @@ public class EmailService {
 		templateModelMap.put("month", yearMonth.getMonthValue());
 		return FreeMarkerTemplateUtils.processTemplateIntoString(freeMarkerConfiguration.getTemplate(CREATED_METAR_TABLE_PARTITION_TEMPLATE), templateModelMap);
 	}
-	
+	private String processRefreshAirprtInfoFailureTemplate(ApplicationException loadingFromExternalApiException) throws IOException, TemplateException {
+		Map<String, Object> templateModelMap = new HashMap<>();
+		templateModelMap.put("loadingFromExternalApiException", loadingFromExternalApiException);
+		return FreeMarkerTemplateUtils.processTemplateIntoString(freeMarkerConfiguration.getTemplate(REFRESH_AIRPORT_INFO_FAILURE_TEMPLATE), templateModelMap);
+	}
+
 }

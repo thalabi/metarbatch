@@ -80,7 +80,7 @@ public class MetarJobManager {
 	}
 	
 	@Scheduled(cron = "${cleanup.schedule.cron.expression}")
-	public void cleanupAndRestartJobs() throws NoSuchJobException, ApplicationException {
+	public void cleanupAndRestartJobs() throws ApplicationException {
 		cleanupAbortedJobs();
 		restartFailedJobs();
 	}
@@ -128,7 +128,7 @@ public class MetarJobManager {
 		jobRepository.update(jobExecution);
 	}
 
-	private void cleanupAbortedJobs() throws NoSuchJobException {
+	private void cleanupAbortedJobs() {
 
 		LOGGER.info("Cleanup aborted jobs");
 		
@@ -159,7 +159,7 @@ public class MetarJobManager {
 		metarJobExecutionEnabled = true;
 	}
 	
-	private void restartFailedJobs() throws NoSuchJobException, ApplicationException {
+	private void restartFailedJobs() throws ApplicationException {
 
 		LOGGER.info("Restarting failed jobs");
 		

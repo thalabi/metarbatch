@@ -1,0 +1,49 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<databaseChangeLog
+	xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+	xmlns:pro="http://www.liquibase.org/xml/ns/pro"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+						http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
+						http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd">
+
+	<changeSet author="Tarif Halabi" id="remote-api-call-log">
+        <createTable tableName="remote_api_call_log">
+        
+            <column autoIncrement="true" name="id" type="BIGINT">
+				<constraints nullable="false" primaryKey="true"
+					primaryKeyName="remote_api_call_log_pkey" />
+            </column>
+            <column name="lk" type="VARCHAR(4000)">
+				<constraints nullable="false" />
+            </column>
+            
+            <column name="remote_api_call_id" type="bigint">
+				<constraints nullable="false" />
+            </column>
+            <column name="attempt" type="int"/>
+            <column name="status" type="VARCHAR(32)">
+				<constraints nullable="false" />
+            </column>
+			<column name="message" type="VARCHAR(4000)"/>
+			<column name="stack_trace" type="VARCHAR(65535)"/>
+            <column name="timestamp" type="TIMESTAMP WITH TIME ZONE">
+				<constraints nullable="false" />
+            </column>
+            <column name="next_retry_time" type="TIMESTAMP WITH TIME ZONE"/>
+
+            
+            <column name="version" type="BIGINT">
+				<constraints nullable="false" />
+            </column>
+        </createTable>
+		<addUniqueConstraint columnNames="lk" constraintName="remote_api_call_log_lk_key"
+			tableName="remote_api_call_log" />
+
+		<addForeignKeyConstraint constraintName="remote_api_call_log_fk_1"
+			baseTableName="remote_api_call_log" baseColumnNames="remote_api_call_id" 
+			referencedTableName="remote_api_call" referencedColumnNames="id" /> 
+        
+	</changeSet>
+</databaseChangeLog>
