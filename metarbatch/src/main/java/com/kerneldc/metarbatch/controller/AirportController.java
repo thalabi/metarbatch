@@ -29,6 +29,7 @@ public class AirportController {
     	LOGGER.info(AppConstants.LOG_BEGIN);
 		LOGGER.info("idOrName: [{}]", idOrName);
 		var airportIdentfierNameSet = airportService.lookupByIdOrName(idOrName);
+		LOGGER.info("airportIdentfierNameSet.size(): [{}]", airportIdentfierNameSet.size());
     	LOGGER.info(AppConstants.LOG_END);
     	return ResponseEntity.ok(airportIdentfierNameSet);
 	}
