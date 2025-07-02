@@ -11,9 +11,11 @@ import com.kerneldc.metarbatch.service.MetarPartitionService;
 import com.kerneldc.metarbatch.service.airport.AirportService;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 @Profile("!test")
 public class StartupTasks {
 
@@ -24,12 +26,16 @@ public class StartupTasks {
 	@EventListener(ApplicationReadyEvent.class)
 	public void createPartitionsAndCleanJobs() throws ApplicationException {
 		
+		LOGGER.info("Running startup tasks ...");
+		
 		metarPartitionService.createThisMonthPartition();
 		metarPartitionService.createNextMonthPartition();
 		
 		metarJobManager.cleanupAndRestartJobs();
 		
 		airportService.loadAirportInfoFromExternalApi();
+
+		LOGGER.info("Startup tasks completed");
 	}
 
 }
