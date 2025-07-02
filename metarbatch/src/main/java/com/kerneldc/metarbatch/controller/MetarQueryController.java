@@ -27,7 +27,7 @@ public class MetarQueryController {
 	private final MetarRepository metarRepository; 
 	
 	@GetMapping("/getListForLatestNoOfObservations")
-	public ResponseEntity<List<Metar>> getLastFuelLog(@RequestParam @NotBlank String stationIds, @RequestParam @Positive int noOfObservations) {
+	public ResponseEntity<List<Metar>> getListForLatestNoOfObservations(@RequestParam @NotBlank String stationIds, @RequestParam @Positive int noOfObservations) {
     	LOGGER.info(AppConstants.LOG_BEGIN);
 		LOGGER.info("stationIds: [{}], noOfObservations: [{}]", stationIds, noOfObservations);
 		var stationIdList = Arrays.asList(stationIds.toUpperCase().split(","));
