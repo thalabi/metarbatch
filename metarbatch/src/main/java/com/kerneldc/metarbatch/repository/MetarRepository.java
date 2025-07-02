@@ -18,6 +18,7 @@ public interface MetarRepository extends JpaRepository<Metar, MetarPk> {
 			select *, row_number() over (partition by station_id order by observation_time desc) as rn
 			  from avwx.metar
 		     where station_id in (:stationIdCollection)
+		       and observation_time >= now() - INTERVAL '24 hours' -- restrict to last 24 hrs to use of partition pruning
 		)
 		select
 			raw_text,
