@@ -155,8 +155,7 @@ public class MetarJobManager {
 			jobRepository.update(je);
 		}
 		
-		LOGGER.info("Enabling Metar job execution");
-		metarJobExecutionEnabled = true;
+		enableMetarJobExecution();
 	}
 	
 	private void restartFailedJobs() throws ApplicationException {
@@ -168,9 +167,18 @@ public class MetarJobManager {
 
 		var jobExecutionIdListToBeRestarted = batchJdbcTemplate.queryForList(RESTART_JOBS_SQL, Long.class, BatchConfig.METAR_JOB);
 		for (Long jobExecutionId : jobExecutionIdListToBeRestarted) {
-			restartMetarJob(jobExecutionId);
+			try {
+				restartMetarJob(jobExecutionId);
+			} catch (ApplicationException e) {
+				enableMetarJobExecution();
+				throw e;
+			}
 		}
 		
+		enableMetarJobExecution();
+	}
+
+	private void enableMetarJobExecution() {
 		LOGGER.info("Enabling Metar job execution");
 		metarJobExecutionEnabled = true;
 	}
