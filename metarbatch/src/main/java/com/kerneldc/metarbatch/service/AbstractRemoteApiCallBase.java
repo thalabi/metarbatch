@@ -10,6 +10,7 @@ import com.kerneldc.metarbatch.domain.remoteapicall.RemoteApiCall;
 import com.kerneldc.metarbatch.domain.remoteapicalllog.RemoteApiCallLog;
 import com.kerneldc.metarbatch.domain.remoteapicalllog.RemoteApiCallLog.RetryStatusEnum;
 import com.kerneldc.metarbatch.repository.RemoteApiCallLogRepository;
+import com.kerneldc.metarbatch.service.http.HttpService;
 
 import lombok.RequiredArgsConstructor;
 

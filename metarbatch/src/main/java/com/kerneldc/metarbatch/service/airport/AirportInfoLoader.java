@@ -13,9 +13,10 @@ import com.kerneldc.metarbatch.domain.remoteapicalllog.RemoteApiCallLog.RetrySta
 import com.kerneldc.metarbatch.exception.ApplicationException;
 import com.kerneldc.metarbatch.repository.RemoteApiCallLogRepository;
 import com.kerneldc.metarbatch.service.AbstractRemoteApiCallBase;
-import com.kerneldc.metarbatch.service.HttpService;
-import com.kerneldc.metarbatch.service.HttpService.RequestTypeEnum;
+import com.kerneldc.metarbatch.service.EmailService;
 import com.kerneldc.metarbatch.service.JwtTokenService;
+import com.kerneldc.metarbatch.service.http.HttpRequestTypeEnum;
+import com.kerneldc.metarbatch.service.http.HttpService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,11 +25,13 @@ import lombok.extern.slf4j.Slf4j;
 public class AirportInfoLoader extends AbstractRemoteApiCallBase {
 
 	private final AirportService airportService;
+	private final EmailService emailService;
 	
 	public AirportInfoLoader(RemoteApiCallLogRepository remoteApiCallLogRepository,
-		JwtTokenService jwtTokenService, HttpService httpService, AirportService airportService) {
+		JwtTokenService jwtTokenService, HttpService httpService, AirportService airportService, EmailService emailService) {
 		super(remoteApiCallLogRepository, jwtTokenService, httpService);
 		this.airportService = airportService;
+		this.emailService = emailService;
 	}
 
 	@Retryable(retryFor = ApplicationException.class,
@@ -49,7 +52,7 @@ public class AirportInfoLoader extends AbstractRemoteApiCallBase {
 		
 		try {
 			var jwt = jwtTokenService.getJwtToken();
-			var returnParams = httpService.processRequest(RequestTypeEnum.AIRPORT_INFO, jwt);
+			var returnParams = httpService.processRequest(HttpRequestTypeEnum.AIRPORT_INFO, jwt);
 			@SuppressWarnings("unchecked")
 			Set<AirportIdentfierName> airportInfoSet = returnParams.get("airportInfoSet", Set.class);
 			
@@ -60,10 +63,18 @@ public class AirportInfoLoader extends AbstractRemoteApiCallBase {
 			LOGGER.info("Loaded [{}] airport information", airportInfoSet.size());
 			writeLog(remoteApiCall, retryCount + 1,
 						(retryCount == 0 ? RetryStatusEnum.SUCCESS : RetryStatusEnum.RETRY_SUCCESS), null, 0);
-		} catch (ApplicationException e) {
-			writeLog(remoteApiCall, retryCount + 1, RetryStatusEnum.RETRY, e, nextDelay);
-			LOGGER.error(e.getMessage());
-			throw e;
+			if (retryCount != 0) {
+				LOGGER.info("Sending success after retrying email");
+				emailService.sendRemoteApiSuccessAfterRetryEmail(HttpRequestTypeEnum.AIRPORT_INFO, retryCount);
+			}
+		} catch (ApplicationException applicationException) {
+			writeLog(remoteApiCall, retryCount + 1, RetryStatusEnum.RETRY, applicationException, nextDelay);
+			LOGGER.error(applicationException.getMessage());
+			if (retryCount == 0) { // first time call fails
+				LOGGER.info("Sending failure email");
+				emailService.sendRemoteApiFailureEmail(HttpRequestTypeEnum.AIRPORT_INFO, applicationException);
+			}
+			throw applicationException;
 		}
 	}
 	

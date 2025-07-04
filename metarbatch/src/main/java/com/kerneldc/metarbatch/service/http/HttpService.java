@@ -1,4 +1,4 @@
-package com.kerneldc.metarbatch.service;
+package com.kerneldc.metarbatch.service.http;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -36,11 +36,6 @@ public class HttpService {
 	private final String flightLogOauth2ServerUrl;
 	private final String airportInfoServiceApiUrl;
 
-	public enum RequestTypeEnum {
-		FLIGHT_LOG_JWT_TOKEN,
-		AIRPORT_INFO;
-	}
-	
 	public HttpService(@Value("${httpservice.url.logging.enabled:false}") boolean urlLoggingEnabled,
 			@Value("${flightlog.oauth2.server.url}") String flightLogOauth2ServerUrl,
 			@Value("${airport.info.service.url}") String airportInfoServiceApiUrl) {
@@ -49,16 +44,16 @@ public class HttpService {
 		this.airportInfoServiceApiUrl = airportInfoServiceApiUrl;
 	}
 
-	public NamedParameterSet processRequest(RequestTypeEnum requestTypeEnum, Set<NamedParameter> data) throws ApplicationException {
-		return processRequest(requestTypeEnum, data, StringUtils.EMPTY);
+	public NamedParameterSet processRequest(HttpRequestTypeEnum httpRequestTypeEnum, Set<NamedParameter> data) throws ApplicationException {
+		return processRequest(httpRequestTypeEnum, data, StringUtils.EMPTY);
 	}
-	public NamedParameterSet processRequest(RequestTypeEnum requestTypeEnum, String jwt) throws ApplicationException {
-		return processRequest(requestTypeEnum, Set.of(), jwt);
+	public NamedParameterSet processRequest(HttpRequestTypeEnum httpRequestTypeEnum, String jwt) throws ApplicationException {
+		return processRequest(httpRequestTypeEnum, Set.of(), jwt);
 	}
 	
-	public NamedParameterSet processRequest(RequestTypeEnum requestTypeEnum, Set<NamedParameter> data, String jwt) throws ApplicationException {
+	public NamedParameterSet processRequest(HttpRequestTypeEnum httpRequestTypeEnum, Set<NamedParameter> data, String jwt) throws ApplicationException {
 		var parameterSet = new NamedParameterSet(data);
-		switch (requestTypeEnum) {
+		switch (httpRequestTypeEnum) {
 			case FLIGHT_LOG_JWT_TOKEN -> {
 				return fetchJwtAccessToken(parameterSet);
 			}

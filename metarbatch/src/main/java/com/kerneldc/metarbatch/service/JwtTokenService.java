@@ -8,7 +8,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.kerneldc.metarbatch.exception.ApplicationException;
-import com.kerneldc.metarbatch.service.HttpService.RequestTypeEnum;
+import com.kerneldc.metarbatch.service.http.HttpRequestTypeEnum;
+import com.kerneldc.metarbatch.service.http.HttpService;
 import com.kerneldc.metarbatch.util.namedparameter.StringParam;
 
 import lombok.extern.slf4j.Slf4j;
@@ -46,7 +47,7 @@ public class JwtTokenService {
 
 	private void fetchJwtAccessToken() throws ApplicationException {
 		var jwtTokenRequestTime = LocalDateTime.now();
-		var returnParams = httpService.processRequest(RequestTypeEnum.FLIGHT_LOG_JWT_TOKEN,
+		var returnParams = httpService.processRequest(HttpRequestTypeEnum.FLIGHT_LOG_JWT_TOKEN,
 				Set.of(new StringParam("oauth2clientId", flightLogOauth2ClientId),
 						new StringParam("oauth2ClientSecret", flightLogOauth2ClientSecret)));
 		jwt = returnParams.get("jwt", String.class);

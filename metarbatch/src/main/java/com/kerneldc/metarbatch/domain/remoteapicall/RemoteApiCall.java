@@ -4,7 +4,7 @@ import java.time.OffsetDateTime;
 
 import com.kerneldc.metarbatch.domain.AbstractPersistableEntity;
 import com.kerneldc.metarbatch.domain.LogicalKeyHolder;
-import com.kerneldc.metarbatch.service.HttpService.RequestTypeEnum;
+import com.kerneldc.metarbatch.service.http.HttpRequestTypeEnum;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -21,7 +21,7 @@ public class RemoteApiCall extends AbstractPersistableEntity {
 	
 	@Enumerated(EnumType.STRING)
 	@Setter(AccessLevel.NONE)
-	private RequestTypeEnum request;
+	private HttpRequestTypeEnum request;
 	
     private String parameters;
     
@@ -29,7 +29,7 @@ public class RemoteApiCall extends AbstractPersistableEntity {
     private OffsetDateTime timestamp;
 
 
-	public void setRequest(RequestTypeEnum request) {
+	public void setRequest(HttpRequestTypeEnum request) {
 		this.request = request;
 		setLogicalKeyHolder();
 	}

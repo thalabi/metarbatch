@@ -17,6 +17,7 @@ import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 
 import com.kerneldc.metarbatch.MetarJobManager;
 import com.kerneldc.metarbatch.exception.ApplicationException;
+import com.kerneldc.metarbatch.service.http.HttpRequestTypeEnum;
 
 import freemarker.core.ParseException;
 import freemarker.template.Configuration;
@@ -43,13 +44,15 @@ public class EmailService {
 	private static final String METAR_JOB_RESTART_FAILURE_NOTIFICATION_SUBJECT = "Metar Job Restart Failure";
 	private static final String METAR_JOB_SET_TO_ABANDONED_NOTIFICATION_SUBJECT = "Metar Job set to 'ABANDONED'";
 	private static final String CREATED_METAR_TABLE_PARTITION_NOTIFICATION_SUBJECT = "Create Metar Table Partition";
-	private static final String REFRESH_AIRPORT_INFO_FAILURE_SUBJECT = "Refresh Airport Identifiers Failure";
+	private static final String RERMOTE_API_FAILURE_SUBJECT = "Remote API Failure";
+	private static final String RERMOTE_API_SUCCESS_AFTER_RETRY_SUBJECT = "Remote API Success After Retry";
 	private static final String METAR_JOB_FAILURE_TEMPLATE = "metarJobFailure.ftlh";
 	private static final String METAR_JOB_ALREADY_RUNNING_TEMPLATE = "metarJobAlreadyRunning.ftlh";
 	private static final String METAR_JOB_RESTART_FAILURE_TEMPLATE = "metarJobRestartFailure.ftlh";
 	private static final String METAR_JOB_SET_TO_ABANDONED_TEMPLATE = "metarJobSetToAbandoned.ftlh";
 	private static final String CREATED_METAR_TABLE_PARTITION_TEMPLATE = "createdMetarPartition.ftlh";
-	private static final String REFRESH_AIRPORT_INFO_FAILURE_TEMPLATE = "refreshAirportIdentifiersFailure.ftlh";
+	private static final String REMOTE_API_FAILURE_TEMPLATE = "remoteApiFailure.ftlh";
+	private static final String REMOTE_API_SUCCESS_AFTER_FAILURE_TEMPLATE = "remoteApiSuccessAfterRetry.ftlh";
 
 	private final JavaMailSender javaMailSender;
 	private final Configuration freeMarkerConfiguration;
@@ -143,21 +146,36 @@ public class EmailService {
 		LOGGER.info("Metar job 'set to ABANDONED' notification email sent to: {}", metarJobNotificationTo);
 	}
 	
-	// TODO not called
-	public void sendRefreshAirportInfoFailureEmail(ApplicationException loadingFromExternalApiException) {
+	public void sendRemoteApiFailureEmail(HttpRequestTypeEnum httpRequestTypeEnum, ApplicationException loadingFromExternalApiException) {
 		var mimeMessage = javaMailSender.createMimeMessage();
 		var mimeMessageHelper = new MimeMessageHelper(mimeMessage, StandardCharsets.UTF_8.name());
 		try {
 			mimeMessageHelper.setFrom(emailNotificationFrom);
 			mimeMessageHelper.setTo(InternetAddress.parse(metarJobNotificationTo));
-			mimeMessageHelper.setSubject(REFRESH_AIRPORT_INFO_FAILURE_SUBJECT);
-			mimeMessageHelper.setText(processRefreshAirprtInfoFailureTemplate(loadingFromExternalApiException), true);
+			mimeMessageHelper.setSubject(RERMOTE_API_FAILURE_SUBJECT);
+			mimeMessageHelper.setText(processRemoteApiFailureTemplate(httpRequestTypeEnum, loadingFromExternalApiException), true);
 			javaMailSender.send(mimeMessage);
-			LOGGER.info("Sent refresh airport information failure email to: {}", metarJobNotificationTo);
+			LOGGER.info("Sent remote api failure email to: {}", metarJobNotificationTo);
 		} catch (MessagingException | IOException | TemplateException e) {
 			var message = "Exception while sending failure email."; 
 			LOGGER.error(message, e);
-			LOGGER.info("Failed to send refresh airport information failure email to: {}", metarJobNotificationTo);
+			LOGGER.info("Failed to send remote api failure email to: {}", metarJobNotificationTo);
+		}
+	}
+	public void sendRemoteApiSuccessAfterRetryEmail(HttpRequestTypeEnum httpRequestTypeEnum, int retryCount) {
+		var mimeMessage = javaMailSender.createMimeMessage();
+		var mimeMessageHelper = new MimeMessageHelper(mimeMessage, StandardCharsets.UTF_8.name());
+		try {
+			mimeMessageHelper.setFrom(emailNotificationFrom);
+			mimeMessageHelper.setTo(InternetAddress.parse(metarJobNotificationTo));
+			mimeMessageHelper.setSubject(RERMOTE_API_SUCCESS_AFTER_RETRY_SUBJECT);
+			mimeMessageHelper.setText(processRemoteApiSuccessAfterRetryTemplate(httpRequestTypeEnum, retryCount), true);
+			javaMailSender.send(mimeMessage);
+			LOGGER.info("Sent reomte api success after retry email to: {}", metarJobNotificationTo);
+		} catch (MessagingException | IOException | TemplateException e) {
+			var message = "Exception while sending failure email."; 
+			LOGGER.error(message, e);
+			LOGGER.info("Failed to send reomte api success after retry email to: {}", metarJobNotificationTo);
 		}
 	}
 
@@ -194,10 +212,17 @@ public class EmailService {
 		templateModelMap.put("month", yearMonth.getMonthValue());
 		return FreeMarkerTemplateUtils.processTemplateIntoString(freeMarkerConfiguration.getTemplate(CREATED_METAR_TABLE_PARTITION_TEMPLATE), templateModelMap);
 	}
-	private String processRefreshAirprtInfoFailureTemplate(ApplicationException loadingFromExternalApiException) throws IOException, TemplateException {
+	private String processRemoteApiFailureTemplate(HttpRequestTypeEnum httpRequestTypeEnum, ApplicationException loadingFromExternalApiException) throws IOException, TemplateException {
 		Map<String, Object> templateModelMap = new HashMap<>();
+		templateModelMap.put("httpRequestTypeEnum", httpRequestTypeEnum);
 		templateModelMap.put("loadingFromExternalApiException", loadingFromExternalApiException);
-		return FreeMarkerTemplateUtils.processTemplateIntoString(freeMarkerConfiguration.getTemplate(REFRESH_AIRPORT_INFO_FAILURE_TEMPLATE), templateModelMap);
+		return FreeMarkerTemplateUtils.processTemplateIntoString(freeMarkerConfiguration.getTemplate(REMOTE_API_FAILURE_TEMPLATE), templateModelMap);
+	}
+	private String processRemoteApiSuccessAfterRetryTemplate(HttpRequestTypeEnum httpRequestTypeEnum, int retryCount) throws IOException, TemplateException {
+		Map<String, Object> templateModelMap = new HashMap<>();
+		templateModelMap.put("httpRequestTypeEnum", httpRequestTypeEnum);
+		templateModelMap.put("retryCount", retryCount);
+		return FreeMarkerTemplateUtils.processTemplateIntoString(freeMarkerConfiguration.getTemplate(REMOTE_API_SUCCESS_AFTER_FAILURE_TEMPLATE), templateModelMap);
 	}
 
 }

@@ -14,7 +14,7 @@ import com.kerneldc.metarbatch.domain.remoteapicalllog.RemoteApiCallLog;
 import com.kerneldc.metarbatch.domain.remoteapicalllog.RemoteApiCallLog.RetryStatusEnum;
 import com.kerneldc.metarbatch.repository.RemoteApiCallLogRepository;
 import com.kerneldc.metarbatch.repository.RemoteApiCallRepository;
-import com.kerneldc.metarbatch.service.HttpService.RequestTypeEnum;
+import com.kerneldc.metarbatch.service.http.HttpRequestTypeEnum;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +42,7 @@ public class AirportService {
 		var now = OffsetDateTime.now();
 		
 		var remoteApiCall = new RemoteApiCall();
-		remoteApiCall.setRequest(RequestTypeEnum.AIRPORT_INFO);
+		remoteApiCall.setRequest(HttpRequestTypeEnum.AIRPORT_INFO);
 		remoteApiCall.setTimestamp(now);
 		remoteApiCallRepository.save(remoteApiCall);
 		
