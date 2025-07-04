@@ -19,11 +19,8 @@ import com.kerneldc.metarbatch.MetarJobManager;
 import com.kerneldc.metarbatch.exception.ApplicationException;
 import com.kerneldc.metarbatch.service.http.HttpRequestTypeEnum;
 
-import freemarker.core.ParseException;
 import freemarker.template.Configuration;
-import freemarker.template.MalformedTemplateNameException;
 import freemarker.template.TemplateException;
-import freemarker.template.TemplateNotFoundException;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
 import lombok.RequiredArgsConstructor;
@@ -200,13 +197,13 @@ public class EmailService {
 		return FreeMarkerTemplateUtils.processTemplateIntoString(freeMarkerConfiguration.getTemplate(METAR_JOB_RESTART_FAILURE_TEMPLATE), templateModelMap);
 	}
 	
-	private String processMetarJobSetToAbandonedTemplate(Long jobExecutionId) throws TemplateNotFoundException, MalformedTemplateNameException, ParseException, IOException, TemplateException {
+	private String processMetarJobSetToAbandonedTemplate(Long jobExecutionId) throws IOException, TemplateException {
 		Map<String, Object> templateModelMap = new HashMap<>();
 		templateModelMap.put("jobExecutionId", jobExecutionId);
 		return FreeMarkerTemplateUtils.processTemplateIntoString(freeMarkerConfiguration.getTemplate(METAR_JOB_SET_TO_ABANDONED_TEMPLATE), templateModelMap);
 	}
 	
-	private String processCreatedMetarTablePartitionTemplate(YearMonth yearMonth) throws TemplateNotFoundException, MalformedTemplateNameException, ParseException, IOException, TemplateException {
+	private String processCreatedMetarTablePartitionTemplate(YearMonth yearMonth) throws IOException, TemplateException {
 		Map<String, Object> templateModelMap = new HashMap<>();
 		templateModelMap.put("year", yearMonth.getYear());
 		templateModelMap.put("month", yearMonth.getMonthValue());

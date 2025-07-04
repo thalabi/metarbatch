@@ -51,7 +51,9 @@ public class AirportInfoLoader extends AbstractRemoteApiCallBase {
 				maxAttempts, delay, multiplier, nextDelay);
 		
 		try {
+			
 			var jwt = jwtTokenService.getJwtToken();
+			
 			var returnParams = httpService.processRequest(HttpRequestTypeEnum.AIRPORT_INFO, jwt);
 			@SuppressWarnings("unchecked")
 			Set<AirportIdentfierName> airportInfoSet = returnParams.get("airportInfoSet", Set.class);
@@ -63,6 +65,7 @@ public class AirportInfoLoader extends AbstractRemoteApiCallBase {
 			LOGGER.info("Loaded [{}] airport information", airportInfoSet.size());
 			writeLog(remoteApiCall, retryCount + 1,
 						(retryCount == 0 ? RetryStatusEnum.SUCCESS : RetryStatusEnum.RETRY_SUCCESS), null, 0);
+			// send success email if call succeeded after retrying
 			if (retryCount != 0) {
 				LOGGER.info("Sending success after retrying email");
 				emailService.sendRemoteApiSuccessAfterRetryEmail(HttpRequestTypeEnum.AIRPORT_INFO, retryCount);
@@ -70,6 +73,7 @@ public class AirportInfoLoader extends AbstractRemoteApiCallBase {
 		} catch (ApplicationException applicationException) {
 			writeLog(remoteApiCall, retryCount + 1, RetryStatusEnum.RETRY, applicationException, nextDelay);
 			LOGGER.error(applicationException.getMessage());
+			// send failure email on failure
 			if (retryCount == 0) { // first time call fails
 				LOGGER.info("Sending failure email");
 				emailService.sendRemoteApiFailureEmail(HttpRequestTypeEnum.AIRPORT_INFO, applicationException);

@@ -60,69 +60,10 @@ public class HttpService {
 			case AIRPORT_INFO -> {
 				return loadAirportInfoFromExternalApi(jwt);
 			}
-//			case FLIGHT_LOG_PENDING_ADD -> {
-//				addFlightLogPending(parameterSet, jwt);
-//				return null;
-//			}
 		}
 		return null;
 	}
 	
-//	private void addFlightLogPending(NamedParameterSet parameters, String jwt) throws ApplicationException {
-//		
-//		if (urlLoggingEnabled) LOGGER.info("Hitting url: [{}]", flightLogPendingServiceApiUrl);
-//		
-//		var flightLogPendingJson = toFlightLogPendingJson(parameters);
-//		HttpClient client = HttpClient.newHttpClient();
-//		var httpRequestBuilder = HttpRequest.newBuilder()
-//		    .uri(URI.create(flightLogPendingServiceApiUrl))
-//		    .header("Content-Type", MediaType.APPLICATION_JSON.toString())
-//		    .POST(BodyPublishers.ofString(flightLogPendingJson));
-//		
-//		httpRequestBuilder.header("Authorization", "Bearer " + jwt);
-//
-//		var httpRequest = httpRequestBuilder.build();
-//
-//		HttpResponse<String> response = null;
-//		try {
-//			response = client.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-//		} catch (IOException | InterruptedException e) {
-//			e.printStackTrace();
-//			if (e instanceof InterruptedException) {
-//				Thread.currentThread().interrupt();
-//			}
-//			var message = String.format("Sending request to URL [%s] failed. ", flightLogPendingServiceApiUrl);
-//			throw new ApplicationException(message, e);
-//		}
-//
-//		var httpStatusCode = response.statusCode();
-//		if (httpStatusCode != HttpURLConnection.HTTP_CREATED) {
-//			var message = String.format("Sending request to URL [%s], returned Http status code [%d]. ",
-//					flightLogPendingServiceApiUrl, httpStatusCode);
-//			if (response != null && StringUtils.isNotEmpty(response.body())) {
-//				message += String.format("Site message: [%s]", response.body());
-//			}
-//			throw new ApplicationException(message);
-//		}
-//
-//	}
-	
-//	private String toFlightLogPendingJson(NamedParameterSet parameterSet) throws ApplicationException {
-//		var flightLogPendingJsonNode = objectMapper.createObjectNode();
-//		flightLogPendingJsonNode.put("flightDate", parameterSet.get("flightDate", String.class));
-//		flightLogPendingJsonNode.put("routeFrom", parameterSet.get("routeFrom", String.class));
-//		flightLogPendingJsonNode.put("routeTo", parameterSet.get("routeTo", String.class));
-//		flightLogPendingJsonNode.put("flightTime", parameterSet.get("flightTime", Float.class));
-//		flightLogPendingJsonNode.put("registration", parameterSet.get("registration", String.class));
-//		flightLogPendingJsonNode.put("makeModel", parameterSet.get("makeModel", String.class));
-//		try {
-//			return objectMapper.writeValueAsString(flightLogPendingJsonNode);
-//		} catch (JsonProcessingException e) {
-//			e.printStackTrace();
-//			throw new ApplicationException("Error creating json string", e);
-//		}
-//	}
-
 	private NamedParameterSet loadAirportInfoFromExternalApi(String jwt) throws ApplicationException  {
 		
 		if (urlLoggingEnabled) LOGGER.info("Hitting url: [{}]", airportInfoServiceApiUrl);

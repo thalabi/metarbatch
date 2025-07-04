@@ -52,9 +52,9 @@ public class JwtTokenService {
 						new StringParam("oauth2ClientSecret", flightLogOauth2ClientSecret)));
 		jwt = returnParams.get("jwt", String.class);
 		var expiresIn = returnParams.get("expiresIn", Long.class);
-		LOGGER.info("JWT token [{}]", jwt);
+		LOGGER.debug("JWT token [{}]", jwt);
 		jwtExpirationTime = jwtTokenRequestTime.plusSeconds(expiresIn);
-		LOGGER.info("JWT token expires in [{}] seconds, at [{}]", expiresIn, jwtExpirationTime);
+		LOGGER.info("JWT token received and expires in [{}] seconds, at [{}]", expiresIn, jwtExpirationTime);
 	}
 
 }
