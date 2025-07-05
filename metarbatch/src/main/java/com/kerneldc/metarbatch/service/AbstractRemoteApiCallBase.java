@@ -20,6 +20,7 @@ public abstract class AbstractRemoteApiCallBase {
 	protected final RemoteApiCallLogRepository remoteApiCallLogRepository;
 	protected final JwtTokenService jwtTokenService;
 	protected final HttpService httpService;
+	protected final EmailService emailService;
 	
 	@Value("${remote.api.call.retry.max.attempts}")
 	protected int maxAttempts;
