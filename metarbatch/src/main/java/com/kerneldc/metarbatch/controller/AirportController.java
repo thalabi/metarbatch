@@ -40,7 +40,8 @@ public class AirportController {
     	LOGGER.info(AppConstants.LOG_BEGIN);
 		Set<StationIdName> stationIdNameSet = Set.of(new StationIdName("CYOO", "Oshawa"),
 				new StationIdName("CYYZ", "Pearson"), new StationIdName("CYPQ", "Peterborough"),
-				new StationIdName("CNF4", "Lindsay"));
+				new StationIdName("CNF4", "Lindsay"), new StationIdName("OLAB", "Beirut"),
+				new StationIdName("MUVR", "Varadero"));
 		LOGGER.info("airportIdentfierNameSet.size(): [{}]", stationIdNameSet.size());
     	LOGGER.info(AppConstants.LOG_END);
     	return ResponseEntity.ok(stationIdNameSet);
