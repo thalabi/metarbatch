@@ -22,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AirportController {
 
-	private final AirportService airportService; 
+	private final AirportService airportService;
 	
 	@GetMapping("/getAirportInfo")
 	public ResponseEntity<Set<AirportIdentfierName>> getAirportInfo(@RequestParam @NotBlank String idOrName) {
@@ -33,4 +33,17 @@ public class AirportController {
     	LOGGER.info(AppConstants.LOG_END);
     	return ResponseEntity.ok(airportIdentfierNameSet);
 	}
+
+	private record StationIdName(String stationId, String name) {}
+	@GetMapping("/getStationIds")
+	public ResponseEntity<Set<StationIdName>> getStationIds() {
+    	LOGGER.info(AppConstants.LOG_BEGIN);
+		Set<StationIdName> stationIdNameSet = Set.of(new StationIdName("CYOO", "Oshawa"),
+				new StationIdName("CYYZ", "Pearson"), new StationIdName("CYPQ", "Peterborough"),
+				new StationIdName("CNF4", "Lindsay"));
+		LOGGER.info("airportIdentfierNameSet.size(): [{}]", stationIdNameSet.size());
+    	LOGGER.info(AppConstants.LOG_END);
+    	return ResponseEntity.ok(stationIdNameSet);
+	}
+
 }

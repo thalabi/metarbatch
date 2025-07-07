@@ -1,5 +1,7 @@
 package com.kerneldc.metarbatch.domain;
 
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
@@ -13,6 +15,7 @@ public class Metar {
 	private String rawText;
 	
 	@EmbeddedId
+	@JsonUnwrapped // to make stationId and observationTime appear as if they are top=level fields
 	private MetarPk metarPk;
 	
     private Float latitude;
