@@ -23,28 +23,27 @@ import lombok.extern.slf4j.Slf4j;
 public class AirportController {
 
 	private final AirportService airportService;
-	
-	@GetMapping("/getAirportInfo")
-	public ResponseEntity<Set<AirportIdentfierName>> getAirportInfo(@RequestParam @NotBlank String idOrName) {
+
+//	@GetMapping("/getAirportIdentfierNamesOld2")
+//	public ResponseEntity<Set<AirportIdentfierName>> getAirportIdentfierNamesOld2() {
+//    	LOGGER.info(AppConstants.LOG_BEGIN);
+//		Set<AirportIdentfierName> stationIdNameSet = Set.of(new AirportIdentfierName("CYOO", "Oshawa"),
+//				new AirportIdentfierName("CYYZ", "Pearson"), new AirportIdentfierName("CYPQ", "Peterborough"),
+//				new AirportIdentfierName("CNF4", "Lindsay"), new AirportIdentfierName("OLBA", "Beirut"),
+//				new AirportIdentfierName("MUVR", "Varadero"));
+//		LOGGER.info("airportIdentfierNameSet.size(): [{}]", stationIdNameSet.size());
+//    	LOGGER.info(AppConstants.LOG_END);
+//    	return ResponseEntity.ok(stationIdNameSet);
+//	}
+
+	@GetMapping("/getAirportIdentfierNames")
+	public ResponseEntity<Set<AirportIdentfierName>> getAirportIdentfierNames(@RequestParam @NotBlank String idOrName) {
     	LOGGER.info(AppConstants.LOG_BEGIN);
 		LOGGER.info("idOrName: [{}]", idOrName);
 		var airportIdentfierNameSet = airportService.lookupByIdOrName(idOrName);
 		LOGGER.info("airportIdentfierNameSet.size(): [{}]", airportIdentfierNameSet.size());
     	LOGGER.info(AppConstants.LOG_END);
     	return ResponseEntity.ok(airportIdentfierNameSet);
-	}
-
-	private record StationIdName(String stationId, String name) {}
-	@GetMapping("/getStationIds")
-	public ResponseEntity<Set<StationIdName>> getStationIds() {
-    	LOGGER.info(AppConstants.LOG_BEGIN);
-		Set<StationIdName> stationIdNameSet = Set.of(new StationIdName("CYOO", "Oshawa"),
-				new StationIdName("CYYZ", "Pearson"), new StationIdName("CYPQ", "Peterborough"),
-				new StationIdName("CNF4", "Lindsay"), new StationIdName("OLAB", "Beirut"),
-				new StationIdName("MUVR", "Varadero"));
-		LOGGER.info("airportIdentfierNameSet.size(): [{}]", stationIdNameSet.size());
-    	LOGGER.info(AppConstants.LOG_END);
-    	return ResponseEntity.ok(stationIdNameSet);
-	}
+	}	
 
 }
