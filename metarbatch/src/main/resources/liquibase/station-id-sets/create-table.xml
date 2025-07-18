@@ -1,0 +1,38 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<databaseChangeLog
+	xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+	xmlns:pro="http://www.liquibase.org/xml/ns/pro"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+						http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
+						http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd">
+
+	<changeSet author="Tarif Halabi" id="station-id-sets">
+        <createTable tableName="station_id_sets">
+        
+            <column autoIncrement="true" name="id" type="bigint">
+				<constraints nullable="false" primaryKey="true"
+					primaryKeyName="station_id_sets_pkey" />
+            </column>
+            <column name="lk" type="varchar(4000)">
+				<constraints nullable="false" />
+            </column>
+            
+            <column name="username" type="varchar(256)">
+				<constraints nullable="false" />
+            </column>
+            <column name="name_to_station_id_sets_map" type="jsonb">
+				<constraints nullable="false" />
+            </column>
+
+            
+            <column name="version" type="BIGINT">
+				<constraints nullable="false" />
+            </column>
+        </createTable>
+		<addUniqueConstraint columnNames="lk" constraintName="station_id_sets_lk_key"
+			tableName="station_id_sets" />
+        
+	</changeSet>
+</databaseChangeLog>

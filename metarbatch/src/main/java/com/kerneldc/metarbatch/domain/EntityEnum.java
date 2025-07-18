@@ -4,10 +4,12 @@ import java.util.Arrays;
 
 import com.kerneldc.metarbatch.domain.remoteapicall.RemoteApiCall;
 import com.kerneldc.metarbatch.domain.remoteapicalllog.RemoteApiCallLog;
+import com.kerneldc.metarbatch.domain.stationidsets.StationIdSets;
 
 public enum EntityEnum implements IEntityEnum {
 	REMOTE_API_CALL_LOG(RemoteApiCallLog.class, false, new String[] {}),
-	REMOTE_API_CALL_DETAIL(RemoteApiCall.class, false, new String[] {})
+	REMOTE_API_CALL_DETAIL(RemoteApiCall.class, false, new String[] {}),
+	STATION_ID_SETS(StationIdSets.class, false, new String[] {})
 	;
 
 	Class<? extends AbstractEntity> entity;

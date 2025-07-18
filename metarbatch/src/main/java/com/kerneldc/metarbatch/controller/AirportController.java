@@ -13,6 +13,7 @@ import com.kerneldc.metarbatch.service.airport.AirportIdentfierName;
 import com.kerneldc.metarbatch.service.airport.AirportService;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,23 +25,11 @@ public class AirportController {
 
 	private final AirportService airportService;
 
-//	@GetMapping("/getAirportIdentfierNamesOld2")
-//	public ResponseEntity<Set<AirportIdentfierName>> getAirportIdentfierNamesOld2() {
-//    	LOGGER.info(AppConstants.LOG_BEGIN);
-//		Set<AirportIdentfierName> stationIdNameSet = Set.of(new AirportIdentfierName("CYOO", "Oshawa"),
-//				new AirportIdentfierName("CYYZ", "Pearson"), new AirportIdentfierName("CYPQ", "Peterborough"),
-//				new AirportIdentfierName("CNF4", "Lindsay"), new AirportIdentfierName("OLBA", "Beirut"),
-//				new AirportIdentfierName("MUVR", "Varadero"));
-//		LOGGER.info("airportIdentfierNameSet.size(): [{}]", stationIdNameSet.size());
-//    	LOGGER.info(AppConstants.LOG_END);
-//    	return ResponseEntity.ok(stationIdNameSet);
-//	}
-
 	@GetMapping("/getAirportIdentfierNames")
-	public ResponseEntity<Set<AirportIdentfierName>> getAirportIdentfierNames(@RequestParam @NotBlank String idOrName) {
+	public ResponseEntity<Set<AirportIdentfierName>> getAirportIdentfierNames(@RequestParam @NotBlank String idOrName, @RequestParam @Positive Integer limit) {
     	LOGGER.info(AppConstants.LOG_BEGIN);
-		LOGGER.info("idOrName: [{}]", idOrName);
-		var airportIdentfierNameSet = airportService.lookupByIdOrName(idOrName);
+		LOGGER.info("idOrName [{}], limit [{}]", idOrName, limit);
+		var airportIdentfierNameSet = airportService.lookupByIdOrName(idOrName, limit);
 		LOGGER.info("airportIdentfierNameSet.size(): [{}]", airportIdentfierNameSet.size());
     	LOGGER.info(AppConstants.LOG_END);
     	return ResponseEntity.ok(airportIdentfierNameSet);

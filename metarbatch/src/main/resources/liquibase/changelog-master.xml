@@ -17,4 +17,6 @@
     <include file="liquibase/remote-api-call/create-table.xml"/>
     <include file="liquibase/remote-api-call-log/create-table.xml"/>
 
+    <include file="liquibase/station-id-sets/create-table.xml"/>
+    
 </databaseChangeLog>

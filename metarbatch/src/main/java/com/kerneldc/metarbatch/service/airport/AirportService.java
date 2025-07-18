@@ -16,7 +16,6 @@ import com.kerneldc.metarbatch.repository.RemoteApiCallLogRepository;
 import com.kerneldc.metarbatch.repository.RemoteApiCallRepository;
 import com.kerneldc.metarbatch.service.http.HttpRequestTypeEnum;
 
-import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -63,13 +62,19 @@ public class AirportService {
 		loadAirportInfoFromExternalApi();
 	}
 
-	public Set<AirportIdentfierName> lookupByIdOrName(@NotBlank String idOrName) {
+	public Set<AirportIdentfierName> lookupByIdOrName(String idOrName, int limit) {
 		var idOrNameLowerCase = idOrName.toLowerCase();
-		return airportInfoMap.entrySet().stream()
+		var airportIdentfierNameSet = airportInfoMap.entrySet().stream()
 				.filter(entry -> entry.getKey().toLowerCase().contains(idOrNameLowerCase)
 						|| entry.getValue().toLowerCase().contains(idOrNameLowerCase))
 				.map(entry -> new AirportIdentfierName(entry.getKey(), entry.getValue()))
+				.limit(limit+1L)
 				.collect(Collectors.toSet());
+		if (airportIdentfierNameSet.size() > limit) {
+			LOGGER.warn("Size of airport identifier and name set is greater than [{}]", limit);
+			return Set.of();
+		}
+		return airportIdentfierNameSet;
 	}
 	
 }
