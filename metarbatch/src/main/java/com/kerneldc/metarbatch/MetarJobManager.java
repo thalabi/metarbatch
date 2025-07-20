@@ -3,6 +3,7 @@ package com.kerneldc.metarbatch;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Objects;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.batch.core.BatchStatus;
@@ -74,36 +75,52 @@ public class MetarJobManager {
 	
 	// Set to volatile to ensure visibility across threads
 	private volatile boolean metarJobExecutionEnabled;
+	private final ReentrantLock jobExecutionLock = new ReentrantLock();
 
 	@PostConstruct
 	public void init() {
-		metarJobExecutionEnabled = false;
+		disableMetarJobExecution();
 	}
 	
 	@Scheduled(cron = "${cleanup.schedule.cron.expression}")
 	public void cleanupAndRestartJobs() throws ApplicationException {
-		cleanupAbortedJobs();
-		restartFailedJobs();
+	    jobExecutionLock.lock();
+	    try {
+	        cleanupAbortedJobs();
+	        restartFailedJobs();
+	    } finally {
+	        jobExecutionLock.unlock();
+	    }
 	}
 	
 	@Scheduled(cron = "${metar.schedule.cron.expression}")
 	public void metarJobLauncher() throws JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException, JobParametersInvalidException {
 		
-		if (! /* not */ metarJobExecutionEnabled) {
-			LOGGER.info("MetarJobScheduling is disabled");
-			return;
-		}
+		if (! /* not */ jobExecutionLock.tryLock()) {
+	        LOGGER.info("Job execution is currently locked. Skipping Metar job launch.");
+	        return;
+	    }
 		
-		var jpbParameters = new JobParametersBuilder(jobExplorer)
-				.addDate(JOB_TIMESTAMP, new Date())
-				.addString("noaaServerResouce", noaaServerResouce)
-				.addString("workDirectory", workDirectory)
-				.addString("metarFile", metarFile)
-				.getNextJobParameters(metarJob)
-				.toJobParameters();
-		LOGGER.info("Launching MetarJob ...");
-		var metarJobExecution = jobLauncher.run(metarJob, jpbParameters);
-		LOGGER.info("MetarJob was launched. Instance id [{}] and status [{}]", metarJobExecution.getJobId(), metarJobExecution.getStatus());
+		try {
+			if (! /* not */ metarJobExecutionEnabled) {
+				LOGGER.info("MetarJobScheduling is disabled");
+				return;
+			}
+			
+			var jpbParameters = new JobParametersBuilder(jobExplorer)
+					.addDate(JOB_TIMESTAMP, new Date())
+					.addString("noaaServerResouce", noaaServerResouce)
+					.addString("workDirectory", workDirectory)
+					.addString("metarFile", metarFile)
+					.getNextJobParameters(metarJob)
+					.toJobParameters();
+			LOGGER.info("Launching MetarJob ...");
+			var metarJobExecution = jobLauncher.run(metarJob, jpbParameters);
+			LOGGER.info("MetarJob was launched. Instance id [{}] and status [{}]", metarJobExecution.getJobId(), metarJobExecution.getStatus());
+		
+		} finally {
+	        jobExecutionLock.unlock();
+	    }
 	}
 	
 	public void restartMetarJob(Long jobExecutionId) throws ApplicationException {
@@ -133,8 +150,7 @@ public class MetarJobManager {
 
 		LOGGER.info("Cleanup aborted jobs");
 		
-		LOGGER.info("Disabling Metar job execution");
-		metarJobExecutionEnabled = false;
+		disableMetarJobExecution();
 		
 
 		var metarJobExecutionSet = jobExplorer.findRunningJobExecutions(BatchConfig.METAR_JOB);
@@ -163,8 +179,7 @@ public class MetarJobManager {
 
 		LOGGER.info("Restarting failed jobs");
 		
-		LOGGER.info("Disabling Metar job execution");
-		metarJobExecutionEnabled = false;
+		disableMetarJobExecution();
 
 		var jobExecutionIdListToBeRestarted = batchJdbcTemplate.queryForList(RESTART_JOBS_SQL, Long.class, BatchConfig.METAR_JOB);
 		for (Long jobExecutionId : jobExecutionIdListToBeRestarted) {
@@ -184,4 +199,8 @@ public class MetarJobManager {
 		metarJobExecutionEnabled = true;
 	}
 
+	private void disableMetarJobExecution() {
+		LOGGER.info("Disabling Metar job execution");
+		metarJobExecutionEnabled = false;
+	}
 }
