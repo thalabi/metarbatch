@@ -72,7 +72,8 @@ public class MetarJobManager {
 	@Qualifier("batchJdbcTemplate")
 	private final JdbcTemplate batchJdbcTemplate;
 	
-	private boolean metarJobExecutionEnabled;
+	// Set to volatile to ensure visibility across threads
+	private volatile boolean metarJobExecutionEnabled;
 
 	@PostConstruct
 	public void init() {
