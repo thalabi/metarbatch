@@ -84,26 +84,34 @@ public class MetarJobManager {
 	
 	@Scheduled(cron = "${cleanup.schedule.cron.expression}")
 	public void cleanupAndRestartJobs() throws ApplicationException {
-	    jobExecutionLock.lock();
-	    try {
+		
+		lockJobExecution();
+		
+		try {
+	    	
+			disableMetarJobExecution();
+			
 	        cleanupAbortedJobs();
 	        restartFailedJobs();
+	        			
 	    } finally {
-	        jobExecutionLock.unlock();
+	    	
+	    	enableMetarJobExecution();
+	    	unlockJobExecution();
 	    }
 	}
 	
 	@Scheduled(cron = "${metar.schedule.cron.expression}")
 	public void metarJobLauncher() throws JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException, JobParametersInvalidException {
 		
-		if (! /* not */ jobExecutionLock.tryLock()) {
-	        LOGGER.info("Job execution is currently locked. Skipping Metar job launch.");
+		if (! /* not */ tryLockJobExecution()) {
+	        LOGGER.info("Skipping MetarJob launch.");
 	        return;
 	    }
 		
 		try {
 			if (! /* not */ metarJobExecutionEnabled) {
-				LOGGER.info("MetarJobScheduling is disabled");
+				LOGGER.info("MetarJob is disabled.");
 				return;
 			}
 			
@@ -116,18 +124,19 @@ public class MetarJobManager {
 					.toJobParameters();
 			LOGGER.info("Launching MetarJob ...");
 			var metarJobExecution = jobLauncher.run(metarJob, jpbParameters);
-			LOGGER.info("MetarJob was launched. Instance id [{}] and status [{}]", metarJobExecution.getJobId(), metarJobExecution.getStatus());
+			LOGGER.info("MetarJob was launched. Instance id [{}] and status [{}].", metarJobExecution.getJobId(), metarJobExecution.getStatus());
 		
 		} finally {
-	        jobExecutionLock.unlock();
-	    }
+			
+			unlockJobExecution();
+		}
 	}
 	
 	public void restartMetarJob(Long jobExecutionId) throws ApplicationException {
 		try {
-			LOGGER.info("Restarting failed Metar job (execution id [{}])", jobExecutionId);
+			LOGGER.info("Restarting failed Metar job (execution id [{}]).", jobExecutionId);
 			var metarJobExecutionId = jobOperator.restart(jobExecutionId);
-			LOGGER.info("Metar job completed (new execution id [{}])", metarJobExecutionId);
+			LOGGER.info("Metar job completed (new execution id [{}]).", metarJobExecutionId);
 		} catch (JobInstanceAlreadyCompleteException e) {
 			LOGGER.warn("Unable to restart job execution id: {} due to JobInstanceAlreadyCompleteException exception. Marking it as ABANDONED.", jobExecutionId);
 			markJobAsAbandoned(jobExecutionId);
@@ -148,11 +157,8 @@ public class MetarJobManager {
 
 	private void cleanupAbortedJobs() {
 
-		LOGGER.info("Cleanup aborted jobs");
+		LOGGER.info("Cleanup aborted jobs.");
 		
-		disableMetarJobExecution();
-		
-
 		var metarJobExecutionSet = jobExplorer.findRunningJobExecutions(BatchConfig.METAR_JOB);
 		
 		for (JobExecution je: metarJobExecutionSet) {
@@ -172,15 +178,12 @@ public class MetarJobManager {
 			jobRepository.update(je);
 		}
 		
-		enableMetarJobExecution();
 	}
 	
 	private void restartFailedJobs() throws ApplicationException {
 
-		LOGGER.info("Restarting failed jobs");
+		LOGGER.info("Restarting failed jobs.");
 		
-		disableMetarJobExecution();
-
 		var jobExecutionIdListToBeRestarted = batchJdbcTemplate.queryForList(RESTART_JOBS_SQL, Long.class, BatchConfig.METAR_JOB);
 		for (Long jobExecutionId : jobExecutionIdListToBeRestarted) {
 			try {
@@ -191,16 +194,36 @@ public class MetarJobManager {
 			}
 		}
 		
-		enableMetarJobExecution();
 	}
 
+	private void lockJobExecution() {
+		LOGGER.info("Locking job execution.");
+	    jobExecutionLock.lock();
+	}
+	
+	private void unlockJobExecution() {
+		LOGGER.info("Unlocking job execution.");
+	    jobExecutionLock.unlock();
+	}
+	
+	private boolean tryLockJobExecution() {
+		LOGGER.info("Trying to lock job execution...");
+		var locked = jobExecutionLock.tryLock();
+		if (locked) {
+			LOGGER.info("Locked job execution.");
+		} else {
+	        LOGGER.info("Job execution is currently locked.");
+	    }
+		return locked;
+	}
+	
 	private void enableMetarJobExecution() {
-		LOGGER.info("Enabling Metar job execution");
+		LOGGER.info("Enabling Metar job execution.");
 		metarJobExecutionEnabled = true;
 	}
 
 	private void disableMetarJobExecution() {
-		LOGGER.info("Disabling Metar job execution");
+		LOGGER.info("Disabling Metar job execution.");
 		metarJobExecutionEnabled = false;
 	}
 }
