@@ -22,7 +22,7 @@
             <column name="request" type="VARCHAR(128)">
 				<constraints nullable="false" />
             </column>
-            <column name="parameters" type="VARCHAR(65535)"/>
+            <column name="parameters" type="jsonb"/>
             <column name="timestamp" type="TIMESTAMP WITH TIME ZONE">
 				<constraints nullable="false" />
             </column>

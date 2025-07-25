@@ -2,6 +2,9 @@ package com.kerneldc.metarbatch.domain.remoteapicall;
 
 import java.time.OffsetDateTime;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import com.kerneldc.metarbatch.domain.AbstractPersistableEntity;
 import com.kerneldc.metarbatch.domain.LogicalKeyHolder;
 import com.kerneldc.metarbatch.service.http.HttpRequestTypeEnum;
@@ -23,6 +26,7 @@ public class RemoteApiCall extends AbstractPersistableEntity {
 	@Setter(AccessLevel.NONE)
 	private HttpRequestTypeEnum request;
 	
+	@JdbcTypeCode(SqlTypes.JSON)
     private String parameters;
     
     @Setter(AccessLevel.NONE)
