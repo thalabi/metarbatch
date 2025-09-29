@@ -8,7 +8,6 @@ import java.time.YearMonth;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.kerneldc.metarbatch.AppConstants;
@@ -75,7 +74,6 @@ public class MetarPartitionService {
 		createPartition(0);
 	}
 	
-	@Scheduled(cron = "${create.partition.schedule.cron.expression}")
 	public void createNextMonthPartition() throws ApplicationException {
 		createPartition(1);
 	}
