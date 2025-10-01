@@ -12,9 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class WebLoggingConfig {
 
-	// To enable, set
-	// logging.level.org.springframework.web.filter.CommonsRequestLoggingFilter=debug
-	
 	@Bean
     public FilterRegistrationBean<CommonsRequestLoggingFilter>  requestLoggingFilter() {
         CommonsRequestLoggingFilter filter = new CommonsRequestLoggingFilter() {
