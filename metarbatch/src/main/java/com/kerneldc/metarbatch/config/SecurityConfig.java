@@ -71,7 +71,6 @@ public class SecurityConfig {
 		httpSecurity.cors(Customizer.withDefaults());
 				
 		httpSecurity.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-
 		
 		return httpSecurity.build();
     }
