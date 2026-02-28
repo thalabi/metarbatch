@@ -32,10 +32,14 @@ public class TransformXmlTasklet implements Tasklet {
 		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
 
 		Response response = (Response) jaxbUnmarshaller.unmarshal(metarFilePath.toFile());
-		List<METAR> metarList = response.getData().getMETAR();
-		LOGGER.info("Transformed xml file to [{}] metar objects", metarList.size());
-		
-		saveMetarList(chunkContext, metarList);
+		if (response.getData() != null) {
+			List<METAR> metarList = response.getData().getMETAR();
+			LOGGER.info("Transformed xml file to [{}] metar objects", metarList.size());
+			
+			saveMetarList(chunkContext, metarList);
+		} else {
+			LOGGER.warn("No data found in xml file");
+		}
 
 		return RepeatStatus.FINISHED;
 	}
