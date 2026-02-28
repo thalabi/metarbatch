@@ -53,8 +53,12 @@ public class EmailService {
 
 	private final JavaMailSender javaMailSender;
 	private final Configuration freeMarkerConfiguration;
+	private final EmailQuotaService emailQuotaService;
 	
 	public void sendMetarJobFailure(Map<String, JobParameter<?>> jobParametersMap, List<String> stacktraceList) throws ApplicationException {
+		if (! /* not */ checkEmailQuota()) {
+			return;
+		}
 		var mimeMessage = javaMailSender.createMimeMessage();
 		var mimeMessageHelper = new MimeMessageHelper(mimeMessage, StandardCharsets.UTF_8.name());
 		try {
@@ -73,6 +77,9 @@ public class EmailService {
 	}
 	
 	public void sendMetarJobAlreadyRunning(Properties currentJobParametersMap, Properties runningJobParametersMap) throws ApplicationException {
+		if (! /* not */ checkEmailQuota()) {
+			return;
+		}
 		var mimeMessage = javaMailSender.createMimeMessage();
 		var mimeMessageHelper = new MimeMessageHelper(mimeMessage, StandardCharsets.UTF_8.name());
 		try {
@@ -91,6 +98,9 @@ public class EmailService {
 	}
 
 	public void sendMetarJobRestartFailure(Long jobExecutionId, String stacktrace) throws ApplicationException {
+		if (! /* not */ checkEmailQuota()) {
+			return;
+		}
 		var mimeMessage = javaMailSender.createMimeMessage();
 		var mimeMessageHelper = new MimeMessageHelper(mimeMessage, StandardCharsets.UTF_8.name());
 		try {
@@ -109,6 +119,9 @@ public class EmailService {
 	}
 
 	public void sendMetarJobSetToAbandoned(Long jobExecutionId) throws ApplicationException {
+		if (! /* not */ checkEmailQuota()) {
+			return;
+		}
 		var mimeMessage = javaMailSender.createMimeMessage();
 		var mimeMessageHelper = new MimeMessageHelper(mimeMessage, StandardCharsets.UTF_8.name());
 		try {
@@ -126,6 +139,9 @@ public class EmailService {
 		LOGGER.info("Metar job 'set to ABANDONED' notification email sent to: {}", metarJobNotificationTo);
 	}
 	public void sendCreatedMetarTablePartition(YearMonth yearMonth) throws ApplicationException {
+		if (! /* not */ checkEmailQuota()) {
+			return;
+		}
 		var mimeMessage = javaMailSender.createMimeMessage();
 		var mimeMessageHelper = new MimeMessageHelper(mimeMessage, StandardCharsets.UTF_8.name());
 		try {
@@ -144,6 +160,9 @@ public class EmailService {
 	}
 	
 	public void sendRemoteApiFailureEmail(HttpRequestTypeEnum httpRequestTypeEnum, ApplicationException loadingFromExternalApiException) {
+		if (! /* not */ checkEmailQuota()) {
+			return;
+		}
 		var mimeMessage = javaMailSender.createMimeMessage();
 		var mimeMessageHelper = new MimeMessageHelper(mimeMessage, StandardCharsets.UTF_8.name());
 		try {
@@ -160,6 +179,9 @@ public class EmailService {
 		}
 	}
 	public void sendRemoteApiSuccessAfterRetryEmail(HttpRequestTypeEnum httpRequestTypeEnum, int retryCount) {
+		if (! /* not */ checkEmailQuota()) {
+			return;
+		}
 		var mimeMessage = javaMailSender.createMimeMessage();
 		var mimeMessageHelper = new MimeMessageHelper(mimeMessage, StandardCharsets.UTF_8.name());
 		try {
@@ -222,4 +244,12 @@ public class EmailService {
 		return FreeMarkerTemplateUtils.processTemplateIntoString(freeMarkerConfiguration.getTemplate(REMOTE_API_SUCCESS_AFTER_FAILURE_TEMPLATE), templateModelMap);
 	}
 
+	private boolean checkEmailQuota() {
+		if (emailQuotaService.checkQuota()) {
+			return true;
+		}
+		
+		LOGGER.warn("Daily email quota reached.");
+		return false;
+	}
 }
