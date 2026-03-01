@@ -22,7 +22,6 @@ public class DeleteMetarStageTasklet implements Tasklet {
 	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
 		LOGGER.info("Deleting metar_stage table");
 		metarStageRepository.deleteAllInBatch();
-		metarStageRepository.flush();
 		return RepeatStatus.FINISHED;
 	}
 
