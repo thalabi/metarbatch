@@ -25,6 +25,11 @@ public class EmailQuotaService {
 		this.dailyQuota = dailyQuota;
 	}
 	
+	/**
+	 * Increment and checkQuota
+	 * 
+	 * @return true if hasn't exceeded quota false otherwise
+	 */
 	public boolean checkQuota() {
 
         QuotaStats stats = refreshIfNewDay();
@@ -49,6 +54,17 @@ public class EmailQuotaService {
             }
         }
     }
+	
+	public boolean isQuotaReached() {
+		
+		QuotaStats stats = refreshIfNewDay();
+		
+        if (dailyQuota < 0) {
+            return false;
+        }
+        
+        return stats.emailsSent().get() >= dailyQuota;
+	}
 	
 	private QuotaStats refreshIfNewDay() {
 

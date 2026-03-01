@@ -50,6 +50,8 @@ public class EmailService {
 	private static final String CREATED_METAR_TABLE_PARTITION_TEMPLATE = "createdMetarPartition.ftlh";
 	private static final String REMOTE_API_FAILURE_TEMPLATE = "remoteApiFailure.ftlh";
 	private static final String REMOTE_API_SUCCESS_AFTER_FAILURE_TEMPLATE = "remoteApiSuccessAfterRetry.ftlh";
+	
+	private static final String LAST_EMAIL_FOR_THE_DAY = "Email quota reached. This is the last email for the day.";
 
 	private final JavaMailSender javaMailSender;
 	private final Configuration freeMarkerConfiguration;
@@ -203,6 +205,9 @@ public class EmailService {
 		templateModelMap.put("jobParametersMap", jobParametersMap);
 		templateModelMap.put("stacktraceList", stacktraceList);
 		templateModelMap.put("jobTimestampFieldName", MetarJobManager.JOB_TIMESTAMP);
+		if (emailQuotaService.isQuotaReached()) {
+			templateModelMap.put("systemMessage", LAST_EMAIL_FOR_THE_DAY);
+		}
 		return FreeMarkerTemplateUtils.processTemplateIntoString(freeMarkerConfiguration.getTemplate(METAR_JOB_FAILURE_TEMPLATE), templateModelMap);
 	}
 	private String processMetarJobAlreadyRunningTemplate(Properties currentJobParametersMap, Properties runningJobParametersMap) throws IOException, TemplateException {
@@ -210,18 +215,27 @@ public class EmailService {
 		templateModelMap.put("currentJobParametersMap", currentJobParametersMap);
 		templateModelMap.put("runningJobParametersMap", runningJobParametersMap);
 		templateModelMap.put("jobTimestampFieldName", MetarJobManager.JOB_TIMESTAMP);
+		if (emailQuotaService.isQuotaReached()) {
+			templateModelMap.put("systemMessage", LAST_EMAIL_FOR_THE_DAY);
+		}
 		return FreeMarkerTemplateUtils.processTemplateIntoString(freeMarkerConfiguration.getTemplate(METAR_JOB_ALREADY_RUNNING_TEMPLATE), templateModelMap);
 	}
 	private String processMetarJobRestartFailureTemplate(Long jobExecutionId, String stacktrace) throws IOException, TemplateException {
 		Map<String, Object> templateModelMap = new HashMap<>();
 		templateModelMap.put("jobExecutionId", jobExecutionId);
 		templateModelMap.put("stacktrace", stacktrace);
+		if (emailQuotaService.isQuotaReached()) {
+			templateModelMap.put("systemMessage", LAST_EMAIL_FOR_THE_DAY);
+		}
 		return FreeMarkerTemplateUtils.processTemplateIntoString(freeMarkerConfiguration.getTemplate(METAR_JOB_RESTART_FAILURE_TEMPLATE), templateModelMap);
 	}
 	
 	private String processMetarJobSetToAbandonedTemplate(Long jobExecutionId) throws IOException, TemplateException {
 		Map<String, Object> templateModelMap = new HashMap<>();
 		templateModelMap.put("jobExecutionId", jobExecutionId);
+		if (emailQuotaService.isQuotaReached()) {
+			templateModelMap.put("systemMessage", LAST_EMAIL_FOR_THE_DAY);
+		}
 		return FreeMarkerTemplateUtils.processTemplateIntoString(freeMarkerConfiguration.getTemplate(METAR_JOB_SET_TO_ABANDONED_TEMPLATE), templateModelMap);
 	}
 	
@@ -229,18 +243,27 @@ public class EmailService {
 		Map<String, Object> templateModelMap = new HashMap<>();
 		templateModelMap.put("year", yearMonth.getYear());
 		templateModelMap.put("month", yearMonth.getMonthValue());
+		if (emailQuotaService.isQuotaReached()) {
+			templateModelMap.put("systemMessage", LAST_EMAIL_FOR_THE_DAY);
+		}
 		return FreeMarkerTemplateUtils.processTemplateIntoString(freeMarkerConfiguration.getTemplate(CREATED_METAR_TABLE_PARTITION_TEMPLATE), templateModelMap);
 	}
 	private String processRemoteApiFailureTemplate(HttpRequestTypeEnum httpRequestTypeEnum, ApplicationException loadingFromExternalApiException) throws IOException, TemplateException {
 		Map<String, Object> templateModelMap = new HashMap<>();
 		templateModelMap.put("httpRequestTypeEnum", httpRequestTypeEnum);
 		templateModelMap.put("loadingFromExternalApiException", loadingFromExternalApiException);
+		if (emailQuotaService.isQuotaReached()) {
+			templateModelMap.put("systemMessage", LAST_EMAIL_FOR_THE_DAY);
+		}
 		return FreeMarkerTemplateUtils.processTemplateIntoString(freeMarkerConfiguration.getTemplate(REMOTE_API_FAILURE_TEMPLATE), templateModelMap);
 	}
 	private String processRemoteApiSuccessAfterRetryTemplate(HttpRequestTypeEnum httpRequestTypeEnum, int retryCount) throws IOException, TemplateException {
 		Map<String, Object> templateModelMap = new HashMap<>();
 		templateModelMap.put("httpRequestTypeEnum", httpRequestTypeEnum);
 		templateModelMap.put("retryCount", retryCount);
+		if (emailQuotaService.isQuotaReached()) {
+			templateModelMap.put("systemMessage", LAST_EMAIL_FOR_THE_DAY);
+		}
 		return FreeMarkerTemplateUtils.processTemplateIntoString(freeMarkerConfiguration.getTemplate(REMOTE_API_SUCCESS_AFTER_FAILURE_TEMPLATE), templateModelMap);
 	}
 
@@ -249,7 +272,7 @@ public class EmailService {
 			return true;
 		}
 		
-		LOGGER.warn("Daily email quota reached.");
+		LOGGER.warn("Daily email quota reached. No more emails will be sent today.");
 		return false;
 	}
 }

@@ -21,7 +21,34 @@ class EmailQuotaServiceTest {
 		assertThat(service.checkQuota(), is(true));
 		assertThat(service.checkQuota(), is(true));
 		assertThat(service.checkQuota(), is(true));
+		
 		assertThat(service.checkQuota(), is(false));
+	}
+
+	@Test
+	void testIsQuotaReached_true() {
+		var service = new EmailQuotaService(3);
+		
+		assertThat(service.checkQuota(), is(true));
+		assertThat(service.checkQuota(), is(true));
+		assertThat(service.checkQuota(), is(true));
+
+		assertThat(service.isQuotaReached(), is(true));
+	}
+	@Test
+	void testIsQuotaReached_false() {
+		var service = new EmailQuotaService(3);
+		
+		assertThat(service.checkQuota(), is(true));
+		assertThat(service.checkQuota(), is(true));
+
+		assertThat(service.isQuotaReached(), is(false));
+	}
+	@Test
+	void testIsQuotaReached_unlimitedQuota() {
+		var service = new EmailQuotaService(-1);
+		
+		assertThat(service.isQuotaReached(), is(false));
 	}
 
 }
