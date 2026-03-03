@@ -105,7 +105,7 @@
 		<dependency>
 		    <groupId>com.github.ulisesbocchio</groupId>
 		    <artifactId>jasypt-spring-boot-starter</artifactId>
-		    <version>3.0.5</version>
+		    <version>4.0.4</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -151,8 +151,6 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
-					<!-- Make this jar fully executable -->
-					<executable>true</executable>
 					<!-- needed for LOADER_PATH env variable to work -->
 					<layout>ZIP</layout>
 					<excludes>
