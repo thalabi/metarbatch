@@ -37,8 +37,11 @@ public class TransformXmlTasklet implements Tasklet {
 			LOGGER.info("Transformed xml file to [{}] metar objects", metarList.size());
 			
 			saveMetarList(chunkContext, metarList);
+			
 		} else {
 			LOGGER.warn("No data found in xml file");
+			
+			saveMetarList(chunkContext, List.of());
 		}
 
 		return RepeatStatus.FINISHED;
